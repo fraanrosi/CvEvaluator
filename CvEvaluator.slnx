@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="CvEvaluator.Api/CvEvaluator.Api.csproj" />
+  <Project Path="CvEvaluator.Application/CvEvaluator.Application.csproj" />
+  <Project Path="CvEvaluator.Domain/CvEvaluator.Domain.csproj" />
+  <Project Path="CvEvaluator.Infrastructure/CvEvaluator.Infrastructure.csproj" />
+</Solution>
