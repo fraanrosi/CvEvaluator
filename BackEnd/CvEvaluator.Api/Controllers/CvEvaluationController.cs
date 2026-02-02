@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using CvEvaluator.Application.UseCases;
 using CvEvaluator.Application.Interfaces;
 
 namespace CvEvaluator.Api.Controllers;
@@ -8,56 +7,77 @@ namespace CvEvaluator.Api.Controllers;
 [Route("api/cv")]
 public class CvEvaluationController : ControllerBase
 {
-    private readonly ICvEvaluationService _CvEvaluationService;
+    private readonly ICvEvaluationService _cvEvaluationService;
     private readonly IDocumentParser _documentParser;
 
-    public CvEvaluationController(ICvEvaluationService useCase, IDocumentParser documentParser)
+    public CvEvaluationController(
+        ICvEvaluationService cvEvaluationService,
+        IDocumentParser documentParser)
     {
-        _CvEvaluationService = useCase;
+        _cvEvaluationService = cvEvaluationService;
         _documentParser = documentParser;
     }
 
-    [HttpPost("evaluate")]
-    public async Task<IActionResult> Evaluate([FromBody] string cvText)
-    {
-        var (decision, result) = await _CvEvaluationService.ExecuteAsync(cvText);
-
-        return Ok(new
-        {
-            decision = decision.ToString(),
-            score = result.Score,
-            strengths = result.Strengths,
-            weaknesses = result.Weaknesses
-        });
-    }
-
     [HttpPost("evaluate-pdf")]
-    public async Task<IActionResult> EvaluatePdf(IFormFile file)
+    public async Task<IActionResult> EvaluatePdf(
+        [FromForm] List<IFormFile> files)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest("File is required");
+        if (files == null || files.Count == 0)
+            return BadRequest("At least one PDF file is required");
 
-        if (!file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-            return BadRequest("Only PDF files are supported");
+        var responses = new List<object>();
 
-        string text;
-
-        using (var stream = file.OpenReadStream())
+        foreach (var file in files)
         {
-            text = await _documentParser.ParseAsync(stream);
+            if (file.Length == 0)
+            {
+                responses.Add(new
+                {
+                    fileName = file.FileName,
+                    error = "Empty file"
+                });
+                continue;
+            }
+
+            if (!file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                responses.Add(new
+                {
+                    fileName = file.FileName,
+                    error = "Only PDF files are supported"
+                });
+                continue;
+            }
+
+            string text;
+
+            using (var stream = file.OpenReadStream())
+            {
+                text = await _documentParser.ParseAsync(stream);
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                responses.Add(new
+                {
+                    fileName = file.FileName,
+                    error = "Could not extract text from PDF"
+                });
+                continue;
+            }
+
+            var (decision, result) = await _cvEvaluationService.ExecuteAsync(text);
+
+            responses.Add(new
+            {
+                fileName = file.FileName,
+                decision = decision.ToString(),
+                score = result.Score,
+                strengths = result.Strengths,
+                weaknesses = result.Weaknesses
+            });
         }
 
-        if (string.IsNullOrWhiteSpace(text))
-            return BadRequest("Could not extract text from PDF");
-
-        var (decision, result) = await _CvEvaluationService.ExecuteAsync(text);
-
-        return Ok(new
-        {
-            decision = decision.ToString(),
-            score = result.Score,
-            strengths = result.Strengths,
-            weaknesses = result.Weaknesses
-        });
+        return Ok(responses);
     }
 }

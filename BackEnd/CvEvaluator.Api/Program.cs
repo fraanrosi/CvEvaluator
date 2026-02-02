@@ -14,9 +14,20 @@ builder.Services.AddScoped<CvEvaluator.Application.Interfaces.ICvEvaluationServi
 builder.Services.AddScoped<CvEvaluator.Application.Interfaces.ILlmClient, OllamaClient>();
 builder.Services.AddScoped<CvEvaluator.Application.Interfaces.IDocumentParser, CvEvaluator.Infrastructure.Parsing.PdfDocumentParser>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
-// 🔹 Swagger (solo en dev, pero para ahora lo dejamos siempre)
+app.UseCors("FrontendPolicy");
 app.UseSwagger();
 app.UseSwaggerUI();
 

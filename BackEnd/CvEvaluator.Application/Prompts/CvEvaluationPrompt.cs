@@ -21,6 +21,7 @@ INSTRUCTIONS:
 - Do NOT include explanations outside JSON
 - Do NOT include markdown
 - Do NOT add comments
+- Your response must be only the JSON
 
 OUTPUT FORMAT:
 {
