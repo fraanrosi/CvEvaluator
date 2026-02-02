@@ -1,18 +1,28 @@
-﻿using CvEvaluator.Application.UseCases;
-using CvEvaluator.Infrastructure.Llm;
+﻿using CvEvaluator.Infrastructure.Llm;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+// =========================
+// Services
+// =========================
 
-// 🔹 Swagger
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddHttpClient<OllamaClient>();
-builder.Services.AddScoped<CvEvaluator.Application.Interfaces.ICvEvaluationService, CvEvaluator.Application.UseCases.CvEvaluationService>();
-builder.Services.AddScoped<CvEvaluator.Application.Interfaces.ILlmClient, OllamaClient>();
-builder.Services.AddScoped<CvEvaluator.Application.Interfaces.IDocumentParser, CvEvaluator.Infrastructure.Parsing.PdfDocumentParser>();
+
+builder.Services.AddScoped<
+    CvEvaluator.Application.Interfaces.ICvEvaluationService,
+    CvEvaluator.Application.UseCases.CvEvaluationService>();
+
+builder.Services.AddScoped<
+    CvEvaluator.Application.Interfaces.ILlmClient,
+    OllamaClient>();
+
+builder.Services.AddScoped<
+    CvEvaluator.Application.Interfaces.IDocumentParser,
+    CvEvaluator.Infrastructure.Parsing.PdfDocumentParser>();
 
 builder.Services.AddCors(options =>
 {
@@ -27,9 +37,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseCors("FrontendPolicy");
+// =========================
+// Middleware
+// =========================
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseCors("FrontendPolicy");
+
 app.MapControllers();
+
 app.Run();

@@ -1,27 +1,33 @@
-﻿using System.Net.Http.Json;
-using CvEvaluator.Application.Interfaces;
+﻿using CvEvaluator.Application.Interfaces;
+using Microsoft.Extensions.Configuration;
+using System.Net.Http.Json;
 
 namespace CvEvaluator.Infrastructure.Llm;
 
 public class OllamaClient : ILlmClient
 {
     private readonly HttpClient _httpClient;
+    private readonly string _baseUrl;
 
-    public OllamaClient(HttpClient httpClient)
+    public OllamaClient(HttpClient httpClient, IConfiguration config)
     {
         _httpClient = httpClient;
+        _baseUrl = config["OLLAMA_BASE_URL"]
+            ?? throw new Exception("OLLAMA_BASE_URL not configured");
     }
 
     public async Task<string> EvaluateCvAsync(string prompt)
     {
         var response = await _httpClient.PostAsJsonAsync(
-            "http://localhost:11434/api/generate",
+            $"{_baseUrl}/api/generate",
             new
             {
                 model = "llama3:8b",
-                prompt = prompt,
+                prompt,
                 stream = false
             });
+
+        response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadFromJsonAsync<OllamaResponse>();
         return json?.response ?? string.Empty;
