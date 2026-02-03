@@ -7,19 +7,19 @@ namespace CvEvaluator.Infrastructure.Llm;
 public class OllamaClient : ILlmClient
 {
     private readonly HttpClient _httpClient;
-    private readonly string _baseUrl;
-
     public OllamaClient(HttpClient httpClient, IConfiguration config)
     {
         _httpClient = httpClient;
-        _baseUrl = config["OLLAMA_BASE_URL"]
-            ?? throw new Exception("OLLAMA_BASE_URL not configured");
+        _httpClient.BaseAddress = new Uri(
+            config["OLLAMA_BASE_URL"]
+            ?? throw new InvalidOperationException("OLLAMA_BASE_URL not configured")
+        );
     }
 
     public async Task<string> EvaluateCvAsync(string prompt)
     {
         var response = await _httpClient.PostAsJsonAsync(
-            $"{_baseUrl}/api/generate",
+            "/api/generate",
             new
             {
                 model = "llama3:8b",

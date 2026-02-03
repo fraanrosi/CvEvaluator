@@ -1,4 +1,5 @@
-﻿using CvEvaluator.Infrastructure.Llm;
+﻿using CvEvaluator.Application.Interfaces;
+using CvEvaluator.Infrastructure.Llm;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddHttpClient<OllamaClient>();
+builder.Services.AddHttpClient<ILlmClient, OllamaClient>();
+
 
 builder.Services.AddScoped<
     CvEvaluator.Application.Interfaces.ICvEvaluationService,

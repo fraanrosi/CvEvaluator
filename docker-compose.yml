@@ -1,21 +1,4 @@
 services:
-  api:
-    image: cvevaluator-api
-    container_name: cvevaluator-api
-    build:
-      context: ./BackEnd
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - OLLAMA_BASE_URL=http://ollama:11434
-    depends_on:
-      ollama:
-        condition: service_healthy
-    networks:
-      - cvevaluator-net
-
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -23,8 +6,49 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list | head -1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
     networks:
       - cvevaluator-net
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: ollama
+    command: pull llama3:8b
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - cvevaluator-net
+    restart: "no"
+
+  api:
+    build:
+      context: ./BackEnd
+      dockerfile: Dockerfile
+    image: cvevaluator-api:latest
+    container_name: cvevaluator-api
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - OLLAMA_BASE_URL=http://ollama:11434
+    depends_on:
+      ollama-init:
+        condition: service_completed_successfully
+    networks:
+      - cvevaluator-net
+    restart: unless-stopped
 
 volumes:
   ollama_data:
