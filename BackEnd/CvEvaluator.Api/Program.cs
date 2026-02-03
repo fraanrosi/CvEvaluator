@@ -1,4 +1,4 @@
-﻿using CvEvaluator.Application.Interfaces;
+﻿using CvEvaluator.Api.Extensions;
 using CvEvaluator.Infrastructure.Llm;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,9 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerWithApiKey();
 
-builder.Services.AddHttpClient<ILlmClient, OllamaClient>();
+builder.Services.AddHttpClient<CvEvaluator.Application.Interfaces.ILlmClient, OllamaClient>();
 
 
 builder.Services.AddScoped<
@@ -39,14 +39,12 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// =========================
-// Middleware
-// =========================
-
 app.UseSwagger();
 app.UseSwaggerUI();
-
 app.UseCors("FrontendPolicy");
+
+// Middleware
+app.UseMiddleware<CvEvaluator.Api.Middlewares.ApiKeyMiddleware>();
 
 app.MapControllers();
 
