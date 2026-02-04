@@ -7,11 +7,11 @@ namespace CvEvaluator.Infrastructure.Llm;
 public class OllamaClient : ILlmClient
 {
     private readonly HttpClient _httpClient;
-    public OllamaClient(HttpClient httpClient, IConfiguration config)
+    public OllamaClient(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _httpClient.BaseAddress = new Uri(
-            config["OLLAMA_BASE_URL"]
+            configuration["Ollama:BaseUrl"]
             ?? throw new InvalidOperationException("OLLAMA_BASE_URL not configured")
         );
     }
