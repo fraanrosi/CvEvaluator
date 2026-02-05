@@ -1,5 +1,4 @@
 ﻿using CvEvaluator.Api.Extensions;
-using CvEvaluator.Api.Middlewares;
 using CvEvaluator.Application.Interfaces;
 using CvEvaluator.Application.UseCases;
 using CvEvaluator.Infrastructure.Llm;
@@ -121,19 +120,10 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// =========================
-// MIDDLEWARES
-// =========================
-
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseCors("FrontendPolicy");
-
-if (!app.Environment.IsDevelopment())
-{
-    app.UseMiddleware<ApiKeyMiddleware>();
-}
 
 // =========================
 // ENDPOINTS
