@@ -51,25 +51,19 @@ builder.Services.AddScoped<
     CvEvaluator.Application.Interfaces.IDocumentParser,
     CvEvaluator.Infrastructure.Parsing.PdfDocumentParser>();
 
-var allowedOrigins = builder.Configuration
-    .GetSection("Cors:AllowedOrigins")
-    .Get<string[]>();
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        if (allowedOrigins is not null && allowedOrigins.Length > 0)
-        {
-            policy.WithOrigins(allowedOrigins);
-        }
-
         policy
+            .WithOrigins(
+                "http://localhost:4200",
+                "https://cv-evaluator-ui.onrender.com"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
 });
-
 
 var app = builder.Build();
 
