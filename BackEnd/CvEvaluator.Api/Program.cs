@@ -1,5 +1,9 @@
 ﻿using CvEvaluator.Api.Extensions;
+using CvEvaluator.Api.Middlewares;
+using CvEvaluator.Application.Interfaces;
+using CvEvaluator.Application.UseCases;
 using CvEvaluator.Infrastructure.Llm;
+using CvEvaluator.Infrastructure.Parsing;
 using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +19,7 @@ builder.Configuration
         optional: true,
         reloadOnChange: true
     )
-    // User Secrets SOLO se usan en Development
+    // User Secrets SOLO se usan en Development (secrets.json)
     .AddUserSecrets<Program>(optional: true)
     // Docker / Hosting (Render, Cloud Run, etc.)
     .AddEnvironmentVariables();
@@ -35,31 +39,24 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerWithApiKey();
 
-builder.Services.AddHttpClient<
-    CvEvaluator.Application.Interfaces.ILlmClient,
-    OllamaClient>();
+builder.Services.AddHttpClient<ILlmClient, OllamaClient>();
 
-builder.Services.AddScoped<
-    CvEvaluator.Application.Interfaces.ICvEvaluationService,
-    CvEvaluator.Application.UseCases.CvEvaluationService>();
+builder.Services.AddScoped<ICvEvaluationService, CvEvaluationService>();
 
-builder.Services.AddScoped<
-    CvEvaluator.Application.Interfaces.ILlmClient,
-    OllamaClient>();
+builder.Services.AddScoped<ILlmClient, OllamaClient>();
 
-builder.Services.AddScoped<
-    CvEvaluator.Application.Interfaces.IDocumentParser,
-    CvEvaluator.Infrastructure.Parsing.PdfDocumentParser>();
+builder.Services.AddScoped<IDocumentParser, PdfDocumentParser>();
+
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>();
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:4200",
-                "https://cv-evaluator-ui.onrender.com"
-            )
+            .WithOrigins(allowedOrigins!)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -133,7 +130,10 @@ app.UseSwaggerUI();
 
 app.UseCors("FrontendPolicy");
 
-app.UseMiddleware<CvEvaluator.Api.Middlewares.ApiKeyMiddleware>();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseMiddleware<ApiKeyMiddleware>();
+}
 
 // =========================
 // ENDPOINTS
