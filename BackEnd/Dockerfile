@@ -16,46 +16,28 @@ WORKDIR "/src/CvEvaluator.Api"
 RUN dotnet publish -c Release -o /app/publish
 
 # =========================
-# Runtime stage
+# Runtime stage - OPTIMIZADO
 # =========================
-FROM ubuntu:22.04 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 
-# ---- System dependencies ----
+# ---- Minimal system dependencies (solo lo necesario para .NET) ----
 RUN apt-get update && \
     apt-get install -y \
+        libicu-dev \
         curl \
-        ca-certificates \
-        zstd \
-        bash \
-        libicu-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# ---- Install Ollama ----
-RUN curl -fsSL https://ollama.com/install.sh | sh
-
-# ---- Install .NET runtime (ASP.NET Core) ----
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- \
-    --channel 8.0 \
-    --runtime aspnetcore \
-    --install-dir /usr/share/dotnet
-
-ENV PATH="/usr/share/dotnet:${PATH}"
+    && rm -rf /var/lib/apt/lists/*
 
 # ---- App ----
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# ---- Startup script ----
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
 # ---- Environment ----
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV OLLAMA_BASE_URL=http://localhost:11434
+# NOTA: OLLAMA__BaseUrl se configura como variable de entorno en Render
+# NO se define aquí para mayor flexibilidad
 
 EXPOSE 8080
-EXPOSE 11434
 
-# ---- Entrypoint ----
-ENTRYPOINT ["/start.sh"]
+# ---- Entrypoint optimizado ----
+ENTRYPOINT ["dotnet", "CvEvaluator.Api.dll"]
