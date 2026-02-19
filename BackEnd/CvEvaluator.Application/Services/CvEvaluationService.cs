@@ -1,62 +1,69 @@
-﻿using System.Text.Json;
-using CvEvaluator.Application.Interfaces;
-using CvEvaluator.Application.Prompts;
+﻿using CvEvaluator.Application.Interfaces;
+using CvEvaluator.Domain.Entities;
 using CvEvaluator.Domain.Enums;
-using CvEvaluator.Domain.Models;
+using Microsoft.AspNetCore.Http;
+using System.Data;
+using System.Security.Cryptography;
+using System.Text;
+using System.Xml.Linq;
 
-namespace CvEvaluator.Application.UseCases;
-
-using CvEvaluator.Application.Interfaces;
+namespace CvEvaluator.Application.Services;
 
 public class CvEvaluationService : ICvEvaluationService
 {
-    private const int Threshold = 70;
+    private readonly IDocumentParser _documentParser;
+    private readonly ICvEvaluationRepository _repository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    private readonly ILlmClient _llmClient;
-
-    public CvEvaluationService(ILlmClient llmClient)
+    public CvEvaluationService(
+        IDocumentParser documentParser,
+        ICvEvaluationRepository repository,
+        IUnitOfWork unitOfWork)
     {
-        _llmClient = llmClient;
+        _documentParser = documentParser;
+        _repository = repository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<(CvDecision Decision, CvEvaluationResult Result)> ExecuteAsync(string cvText)
+    public async Task<Guid> ExecuteAsync(
+        IFormFile file,
+        Guid userId,
+        CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(cvText))
-            throw new ArgumentException("CV text cannot be empty");
+        if (file == null || file.Length == 0)
+            throw new ArgumentException("Invalid file");
 
-        var prompt = CvEvaluationPrompt.Build(cvText);
+        string extractedText;
 
-        var llmResponse = await _llmClient.EvaluateCvAsync(prompt);
-
-        if (string.IsNullOrWhiteSpace(llmResponse))
-            throw new Exception("LLM returned empty response");
-
-        CvEvaluationResult? evaluationResult;
-
-        try
+        await using (var stream = file.OpenReadStream())
         {
-            evaluationResult = JsonSerializer.Deserialize<CvEvaluationResult>(
-                llmResponse,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-        }
-        catch (JsonException ex)
-        {
-            throw new Exception(
-                $"Failed to parse LLM response as JSON. Response was: {llmResponse}",
-                ex
-            );
+            extractedText = await _documentParser.ParseAsync(stream);
         }
 
-        if (evaluationResult == null)
-            throw new Exception("LLM response could not be deserialized");
+        if (string.IsNullOrWhiteSpace(extractedText))
+            throw new InvalidOperationException("Could not extract text from PDF");
+
+        var fileHash = Convert.ToHexString(
+            SHA256.HashData(Encoding.UTF8.GetBytes(extractedText)));
         
-        var decision = evaluationResult.Score >= Threshold
-            ? CvDecision.Suitable
-            : CvDecision.NotSuitable;
+        //var user = new User("email", "user", "1234", 0);
 
-        return (decision, evaluationResult);
+        var evaluation = new CvEvaluation
+        {
+            Id = Guid.NewGuid(),
+            UserId = Guid.Parse("ff520065-f03c-46c3-b5b0-d27beb1559d1"),
+            //User = user,
+            OriginalFilename = file.FileName,
+            FileSizeBytes = file.Length,
+            FileHash = fileHash,
+            ExtractedText = extractedText,
+            Status = EvaluationStatus.Processing,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _repository.AddAsync(evaluation, ct);
+        await _unitOfWork.SaveChangesAsync(ct);
+
+        return evaluation.Id;
     }
 }

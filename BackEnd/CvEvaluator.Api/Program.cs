@@ -1,9 +1,13 @@
 ﻿using CvEvaluator.Api.Extensions;
 using CvEvaluator.Application.Interfaces;
-using CvEvaluator.Application.UseCases;
+using CvEvaluator.Application.Services;
+using CvEvaluator.Infrastructure.Background;
 using CvEvaluator.Infrastructure.Llm;
 using CvEvaluator.Infrastructure.Parsing;
+using CvEvaluator.Infrastructure.Persistence;
+using CvEvaluator.Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,17 +38,16 @@ builder.Logging.AddConsole();
 // SERVICES
 // =========================
 
+builder.Services.AddHostedService<CvEvaluationWorker>();
+builder.Services.AddDbContext<CvEvaluatorDbContext>(options =>options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerWithApiKey();
-
 builder.Services.AddHttpClient<ILlmClient, OllamaClient>();
-
+builder.Services.AddScoped<ICvEvaluationRepository, CvEvaluationRepository>();
 builder.Services.AddScoped<ICvEvaluationService, CvEvaluationService>();
-
-builder.Services.AddScoped<ILlmClient, OllamaClient>();
-
 builder.Services.AddScoped<IDocumentParser, PdfDocumentParser>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")

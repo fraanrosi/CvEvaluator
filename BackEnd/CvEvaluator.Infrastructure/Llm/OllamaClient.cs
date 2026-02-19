@@ -7,6 +7,7 @@ namespace CvEvaluator.Infrastructure.Llm;
 public class OllamaClient : ILlmClient
 {
     private readonly HttpClient _httpClient;
+
     public OllamaClient(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
@@ -16,7 +17,7 @@ public class OllamaClient : ILlmClient
         );
     }
 
-    public async Task<string> EvaluateCvAsync(string prompt)
+    public async Task<string> EvaluateCvAsync(string prompt, CancellationToken ct)
     {
         var response = await _httpClient.PostAsJsonAsync(
             "/api/generate",
@@ -25,11 +26,13 @@ public class OllamaClient : ILlmClient
                 model = "llama3:8b",
                 prompt,
                 stream = false
-            });
+            },
+            ct);
 
         response.EnsureSuccessStatusCode();
 
-        var json = await response.Content.ReadFromJsonAsync<OllamaResponse>();
+        var json = await response.Content.ReadFromJsonAsync<OllamaResponse>(cancellationToken: ct);
+
         return json?.response ?? string.Empty;
     }
 
