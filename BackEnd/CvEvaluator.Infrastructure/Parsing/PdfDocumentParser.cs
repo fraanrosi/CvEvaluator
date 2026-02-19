@@ -27,7 +27,7 @@ public class PdfDocumentParser : IDocumentParser
                 if (!string.IsNullOrWhiteSpace(pageText))
                 {
                     sb.AppendLine(pageText);
-                    sb.AppendLine(); // page separator
+                    sb.AppendLine();
                 }
             }
         }
@@ -37,6 +37,20 @@ public class PdfDocumentParser : IDocumentParser
 
     private static string NormalizeText(string text)
     {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        // 🔥 1. Remove null bytes (critical for PostgreSQL)
+        text = text.Replace("\0", string.Empty);
+
+        // 🔥 2. Remove other non-printable control chars except \n and \t
+        text = new string(text
+            .Where(c => !char.IsControl(c) || c == '\n' || c == '\t')
+            .ToArray());
+
+        // 🔥 3. Normalize Unicode
+        text = text.Normalize(NormalizationForm.FormKC);
+
         // Normalize line endings
         text = text
             .Replace("\r\n", "\n")

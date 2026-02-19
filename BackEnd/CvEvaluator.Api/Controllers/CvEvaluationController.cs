@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using CvEvaluator.Application.Interfaces;
+﻿using CvEvaluator.Application.Interfaces;
+using CvEvaluator.Domain.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CvEvaluator.Api.Controllers;
 
@@ -20,12 +21,14 @@ public class CvEvaluationController : ControllerBase
 
     [HttpPost("evaluate-pdf")]
     public async Task<IActionResult> EvaluatePdf(
-        [FromForm] List<IFormFile> files)
+    [FromForm] List<IFormFile> files,
+    CancellationToken ct)
     {
         if (files == null || files.Count == 0)
             return BadRequest("At least one PDF file is required");
 
         var responses = new List<object>();
+        var userId = Guid.Empty; // TODO: reemplazar cuando tengas auth
 
         foreach (var file in files)
         {
@@ -49,35 +52,55 @@ public class CvEvaluationController : ControllerBase
                 continue;
             }
 
-            string text;
-
-            using (var stream = file.OpenReadStream())
+            try
             {
-                text = await _documentParser.ParseAsync(stream);
-            }
+                var evaluationId = await _cvEvaluationService.ExecuteAsync(
+                    file,
+                    userId,
+                    ct);
 
-            if (string.IsNullOrWhiteSpace(text))
+                responses.Add(new
+                {
+                    evaluationId,
+                    fileName = file.FileName,
+                    status = "Processing"
+                });
+            }
+            catch (Exception ex)
             {
                 responses.Add(new
                 {
                     fileName = file.FileName,
-                    error = "Could not extract text from PDF"
+                    error = ex.InnerException
                 });
-                continue;
             }
-
-            var (decision, result) = await _cvEvaluationService.ExecuteAsync(text);
-
-            responses.Add(new
-            {
-                fileName = file.FileName,
-                decision = decision.ToString(),
-                score = result.Score,
-                strengths = result.Strengths,
-                weaknesses = result.Weaknesses
-            });
         }
 
-        return Ok(responses);
+        return Accepted(responses);
     }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(
+    Guid id,
+    [FromServices] ICvEvaluationRepository repository,
+    CancellationToken ct)
+    {
+        var evaluation = await repository.GetByIdAsync(id, ct);
+
+        if (evaluation == null)
+            return NotFound();
+
+        return Ok(new
+        {
+            evaluation.Id,
+            evaluation.OriginalFilename,
+            evaluation.EvaluationResult,
+            evaluation.Status,
+            evaluation.OverallScore,
+            evaluation.ErrorMessage,
+            evaluation.CreatedAt,
+            evaluation.EvaluatedAt
+        });
+    }
+
 }
