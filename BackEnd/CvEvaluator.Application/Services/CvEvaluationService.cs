@@ -2,10 +2,9 @@
 using CvEvaluator.Domain.Entities;
 using CvEvaluator.Domain.Enums;
 using Microsoft.AspNetCore.Http;
-using System.Data;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Xml.Linq;
 
 namespace CvEvaluator.Application.Services;
 
@@ -45,14 +44,11 @@ public class CvEvaluationService : ICvEvaluationService
 
         var fileHash = Convert.ToHexString(
             SHA256.HashData(Encoding.UTF8.GetBytes(extractedText)));
-        
-        //var user = new User("email", "user", "1234", 0);
 
         var evaluation = new CvEvaluation
         {
             Id = Guid.NewGuid(),
-            UserId = Guid.Parse("ff520065-f03c-46c3-b5b0-d27beb1559d1"),
-            //User = user,
+            UserId = userId,
             OriginalFilename = file.FileName,
             FileSizeBytes = file.Length,
             FileHash = fileHash,

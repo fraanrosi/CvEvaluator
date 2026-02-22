@@ -7,7 +7,6 @@ public class CvEvaluation
     public Guid Id { get; set; }
 
     public Guid UserId { get; set; }
-    public User User { get; set; }
 
     // Metadata archivo
     public string OriginalFilename { get; set; }

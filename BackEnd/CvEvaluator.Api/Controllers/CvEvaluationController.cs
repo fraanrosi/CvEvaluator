@@ -1,6 +1,7 @@
 ﻿using CvEvaluator.Application.Interfaces;
-using CvEvaluator.Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CvEvaluator.Api.Controllers;
 
@@ -19,6 +20,7 @@ public class CvEvaluationController : ControllerBase
         _documentParser = documentParser;
     }
 
+    [Authorize]
     [HttpPost("evaluate-pdf")]
     public async Task<IActionResult> EvaluatePdf(
     [FromForm] List<IFormFile> files,
@@ -28,7 +30,7 @@ public class CvEvaluationController : ControllerBase
             return BadRequest("At least one PDF file is required");
 
         var responses = new List<object>();
-        var userId = Guid.Empty; // TODO: reemplazar cuando tengas auth
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         foreach (var file in files)
         {
@@ -79,6 +81,7 @@ public class CvEvaluationController : ControllerBase
         return Accepted(responses);
     }
 
+    [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(
     Guid id,
@@ -102,5 +105,4 @@ public class CvEvaluationController : ControllerBase
             evaluation.EvaluatedAt
         });
     }
-
 }

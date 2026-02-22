@@ -14,12 +14,14 @@ public static class SwaggerExtensions
                 Version = "v1"
             });
 
-            options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                Description = "API Key required. Use header: X-API-KEY",
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
                 In = ParameterLocation.Header,
-                Name = "X-API-KEY",
-                Type = SecuritySchemeType.ApiKey
+                Description = "Enter JWT token like: Bearer {your token}"
             });
 
             options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -30,7 +32,7 @@ public static class SwaggerExtensions
                         Reference = new OpenApiReference
                         {
                             Type = ReferenceType.SecurityScheme,
-                            Id = "ApiKey"
+                            Id = "Bearer"
                         }
                     },
                     Array.Empty<string>()
