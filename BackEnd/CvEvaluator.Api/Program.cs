@@ -2,12 +2,17 @@
 using CvEvaluator.Application.Interfaces;
 using CvEvaluator.Application.Services;
 using CvEvaluator.Infrastructure.Background;
+using CvEvaluator.Infrastructure.Identity;
 using CvEvaluator.Infrastructure.Llm;
 using CvEvaluator.Infrastructure.Parsing;
 using CvEvaluator.Infrastructure.Persistence;
 using CvEvaluator.Infrastructure.Persistence.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,9 +27,7 @@ builder.Configuration
         optional: true,
         reloadOnChange: true
     )
-    // User Secrets SOLO se usan en Development (secrets.json)
     .AddUserSecrets<Program>(optional: true)
-    // Docker / Hosting (Render, Cloud Run, etc.)
     .AddEnvironmentVariables();
 
 // =========================
@@ -39,15 +42,96 @@ builder.Logging.AddConsole();
 // =========================
 
 builder.Services.AddHostedService<CvEvaluationWorker>();
-builder.Services.AddDbContext<CvEvaluatorDbContext>(options =>options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddDbContext<CvEvaluatorDbContext>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    ));
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerWithApiKey();
+
 builder.Services.AddHttpClient<ILlmClient, OllamaClient>();
+
 builder.Services.AddScoped<ICvEvaluationRepository, CvEvaluationRepository>();
 builder.Services.AddScoped<ICvEvaluationService, CvEvaluationService>();
 builder.Services.AddScoped<IDocumentParser, PdfDocumentParser>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IIdentityService, IdentityService>();
+
+// =========================
+// IDENTITY (PRIMERO)
+// =========================
+
+builder.Services
+    .AddIdentity<ApplicationUser, IdentityRole<Guid>>()
+    .AddEntityFrameworkStores<CvEvaluatorDbContext>()
+    .AddDefaultTokenProviders();
+
+// Evita redirects a login (API pura)
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = 401;
+        return Task.CompletedTask;
+    };
+});
+
+// =========================
+// AUTHENTICATION (DESPUÉS DE IDENTITY)
+// =========================
+
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("TOKEN VALIDATED");
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine("AUTH FAILED: " + context.Exception?.Message);
+                return Task.CompletedTask;
+            }
+        };
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+            ),
+
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+// =========================
+// AUTHORIZATION (AL FINAL)
+// =========================
+
+builder.Services.AddAuthorization();
+
+// =========================
+// CORS
+// =========================
 
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
@@ -65,7 +149,6 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            // fallback seguro
             policy.AllowAnyOrigin()
                   .AllowAnyHeader()
                   .AllowAnyMethod();
@@ -76,7 +159,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // =========================
-// LOGGERS
+// STARTUP LOG
 // =========================
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
@@ -119,7 +202,7 @@ app.Use(async (context, next) =>
 });
 
 // =========================
-// HTTP REQUEST LOGGING
+// REQUEST LOGGING
 // =========================
 
 app.Use(async (context, next) =>
@@ -132,10 +215,17 @@ app.Use(async (context, next) =>
     await next();
 });
 
+// =========================
+// MIDDLEWARE ORDER
+// =========================
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseCors("FrontendPolicy");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // =========================
 // ENDPOINTS
