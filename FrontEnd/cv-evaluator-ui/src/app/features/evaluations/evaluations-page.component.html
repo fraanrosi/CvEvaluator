@@ -1,0 +1,26 @@
+<h2>My Evaluations</h2>
+
+<div>
+  <input type="file" multiple (change)="onFilesSelected($event)" />
+  <button (click)="upload()" [disabled]="loading">
+    {{ loading ? 'Uploading...' : 'Upload CV' }}
+  </button>
+</div>
+
+<table>
+  <tr>
+    <th>File</th>
+    <th>Status</th>
+    <th>Score</th>
+  </tr>
+
+  <tr *ngFor="let e of evaluations">
+    <td>{{ e.originalFilename }}</td>
+    <td>
+      <span *ngIf="e.status === 'Processing'">🟡 Processing</span>
+      <span *ngIf="e.status === 'Completed'">🟢 Completed</span>
+      <span *ngIf="e.status === 'Failed'">🔴 Failed</span>
+    </td>
+    <td>{{ e.overallScore ?? '-' }}</td>
+  </tr>
+</table>

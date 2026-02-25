@@ -1,4 +1,5 @@
-﻿using CvEvaluator.Application.Interfaces;
+﻿using CvEvaluator.Application.DTOs;
+using CvEvaluator.Application.Interfaces;
 using CvEvaluator.Domain.Entities;
 using CvEvaluator.Domain.Enums;
 using Microsoft.AspNetCore.Http;
@@ -24,7 +25,7 @@ public class CvEvaluationService : ICvEvaluationService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Guid> ExecuteAsync(
+    public async Task<Guid> EvaluateAsync(
         IFormFile file,
         Guid userId,
         CancellationToken ct)
@@ -61,5 +62,36 @@ public class CvEvaluationService : ICvEvaluationService
         await _unitOfWork.SaveChangesAsync(ct);
 
         return evaluation.Id;
+    }
+
+    public async Task<CvEvaluationDto?> GetByIdAsync(Guid id, Guid userId, CancellationToken ct)
+    {
+        var evaluation = await _repository.GetByIdAsync(id, ct);
+
+        if (evaluation == null || evaluation.UserId != userId)
+            return null;
+
+        return MapToDto(evaluation);
+    }
+
+    public async Task<IEnumerable<CvEvaluationDto>> GetAllByUserAsync(Guid userId, CancellationToken ct)
+    {
+        var evaluations = await _repository.GetAllByUserIdAsync(userId, ct);
+
+        return evaluations.Select(MapToDto);
+    }
+
+    private static CvEvaluationDto MapToDto(CvEvaluation e)
+    {
+        return new CvEvaluationDto
+        {
+            Id = e.Id,
+            OriginalFilename = e.OriginalFilename,
+            Status = e.Status,
+            OverallScore = e.OverallScore,
+            ErrorMessage = e.ErrorMessage,
+            CreatedAt = e.CreatedAt,
+            EvaluatedAt = e.EvaluatedAt
+        };
     }
 }

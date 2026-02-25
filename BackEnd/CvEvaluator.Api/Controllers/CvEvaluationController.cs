@@ -1,4 +1,5 @@
-﻿using CvEvaluator.Application.Interfaces;
+﻿using CvEvaluator.Application.DTOs;
+using CvEvaluator.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -6,18 +7,15 @@ using System.Security.Claims;
 namespace CvEvaluator.Api.Controllers;
 
 [ApiController]
-[Route("api/cv")]
+[Route("api/cvEvaluations")]
 public class CvEvaluationController : ControllerBase
 {
     private readonly ICvEvaluationService _cvEvaluationService;
-    private readonly IDocumentParser _documentParser;
 
     public CvEvaluationController(
-        ICvEvaluationService cvEvaluationService,
-        IDocumentParser documentParser)
+        ICvEvaluationService cvEvaluationService)
     {
         _cvEvaluationService = cvEvaluationService;
-        _documentParser = documentParser;
     }
 
     [Authorize]
@@ -56,7 +54,7 @@ public class CvEvaluationController : ControllerBase
 
             try
             {
-                var evaluationId = await _cvEvaluationService.ExecuteAsync(
+                var evaluationId = await _cvEvaluationService.EvaluateAsync(
                     file,
                     userId,
                     ct);
@@ -85,24 +83,29 @@ public class CvEvaluationController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(
     Guid id,
-    [FromServices] ICvEvaluationRepository repository,
+    [FromServices] ICvEvaluationService service,
     CancellationToken ct)
     {
-        var evaluation = await repository.GetByIdAsync(id, ct);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        if (evaluation == null)
+        var result = await service.GetByIdAsync(id, userId, ct);
+
+        if (result == null)
             return NotFound();
 
-        return Ok(new
-        {
-            evaluation.Id,
-            evaluation.OriginalFilename,
-            evaluation.EvaluationResult,
-            evaluation.Status,
-            evaluation.OverallScore,
-            evaluation.ErrorMessage,
-            evaluation.CreatedAt,
-            evaluation.EvaluatedAt
-        });
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> GetAll(
+    [FromServices] ICvEvaluationService service,
+    CancellationToken ct)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var result = await service.GetAllByUserAsync(userId, ct);
+
+        return Ok(result);
     }
 }

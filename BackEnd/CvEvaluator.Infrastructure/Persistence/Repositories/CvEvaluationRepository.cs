@@ -1,4 +1,5 @@
-﻿using CvEvaluator.Application.Interfaces;
+﻿using CvEvaluator.Application.DTOs;
+using CvEvaluator.Application.Interfaces;
 using CvEvaluator.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,10 +19,20 @@ public class CvEvaluationRepository : ICvEvaluationRepository
         await _context.Evaluations.AddAsync(evaluation, ct);
     }
 
+    public async Task<IEnumerable<CvEvaluation>> GetAllByUserIdAsync(Guid userId, CancellationToken ct)
+    {
+        return await _context.Evaluations
+            .AsNoTracking()
+            .Where(e => e.UserId == userId)
+            .OrderByDescending(e => e.CreatedAt)
+            .ToListAsync(ct);
+    }
+
     public async Task<CvEvaluation?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _context.Evaluations
-            .FirstOrDefaultAsync(x => x.Id == id, ct);
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
     }
 
     public void Update(CvEvaluation evaluation)
