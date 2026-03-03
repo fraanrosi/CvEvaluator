@@ -10,22 +10,21 @@ import { EvaluationResult } from '../../core/models/evaluation-result.model';
 export class EvaluationsService {
 
   private http = inject(HttpClient);
-  private baseUrl = `${environment.apiBaseUrl}/cvEvaluations`;
 
   uploadPdf(files: File[]): Observable<{ id: string }> {
     const formData = new FormData();
     files.forEach(file => formData.append('files', file));
     return this.http.post<{ id: string }>(
-      `${this.baseUrl}/evaluate-pdf`,
+      `${environment.apiBaseUrl}/cvEvaluations/evaluate-pdf`,
       formData
     );
   }
 
   getById(id: string): Observable<EvaluationResult> {
-    return this.http.get<EvaluationResult>(`${this.baseUrl}/${id}`);
+    return this.http.get<EvaluationResult>(`${environment.apiBaseUrl}/cvEvaluations/${id}`);
   }
 
   getAll(): Observable<EvaluationResult[]> {
-    return this.http.get<EvaluationResult[]>(this.baseUrl);
+    return this.http.get<EvaluationResult[]>(`${environment.apiBaseUrl}/cvEvaluations`);
   }
 }

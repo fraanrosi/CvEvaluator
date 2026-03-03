@@ -14,15 +14,18 @@ public class CvEvaluationService : ICvEvaluationService
     private readonly IDocumentParser _documentParser;
     private readonly ICvEvaluationRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEvaluationQueue _evaluationQueue;
 
     public CvEvaluationService(
         IDocumentParser documentParser,
         ICvEvaluationRepository repository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IEvaluationQueue evaluationQueue)
     {
         _documentParser = documentParser;
         _repository = repository;
         _unitOfWork = unitOfWork;
+        _evaluationQueue = evaluationQueue;
     }
 
     public async Task<Guid> EvaluateAsync(
@@ -60,6 +63,8 @@ public class CvEvaluationService : ICvEvaluationService
 
         await _repository.AddAsync(evaluation, ct);
         await _unitOfWork.SaveChangesAsync(ct);
+        // 🔥 Encolamos inmediatamente
+        await _evaluationQueue.EnqueueAsync(evaluation.Id);
 
         return evaluation.Id;
     }

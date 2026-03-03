@@ -7,6 +7,7 @@ using CvEvaluator.Infrastructure.Llm;
 using CvEvaluator.Infrastructure.Parsing;
 using CvEvaluator.Infrastructure.Persistence;
 using CvEvaluator.Infrastructure.Persistence.Repositories;
+using CvEvaluator.Infrastructure.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
@@ -59,6 +60,12 @@ builder.Services.AddScoped<ICvEvaluationService, CvEvaluationService>();
 builder.Services.AddScoped<IDocumentParser, PdfDocumentParser>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<EvaluationQueue>();
+builder.Services.AddSingleton<IEvaluationQueue>(sp =>
+    sp.GetRequiredService<EvaluationQueue>());
+
+builder.Services.AddHostedService<CvEvaluationWorker>();
 
 // =========================
 // IDENTITY (PRIMERO)
@@ -101,6 +108,19 @@ builder.Services
             OnAuthenticationFailed = context =>
             {
                 Console.WriteLine("AUTH FAILED: " + context.Exception?.Message);
+                return Task.CompletedTask;
+            },
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/hubs/evaluations"))
+                {
+                    context.Token = accessToken;
+                }
+
                 return Task.CompletedTask;
             }
         };
@@ -145,7 +165,8 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .AllowCredentials();
         }
         else
         {
@@ -219,6 +240,7 @@ app.Use(async (context, next) =>
 // MIDDLEWARE ORDER
 // =========================
 
+app.MapHub<EvaluationHub>("/hubs/evaluations");
 app.UseSwagger();
 app.UseSwaggerUI();
 
