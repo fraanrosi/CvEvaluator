@@ -33,6 +33,9 @@ export class AuthService {
       fullName
     });
   }
+  getToken(): string | null {
+    return this.session.getToken();
+  }
 
   logout() {
     this.session.clearSession();

@@ -1,8 +1,12 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { EvaluationsService } from './evaluations.service';
 import { EvaluationResult } from '../../core/models/evaluation-result.model';
-import { interval, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { SignalRService } from '../../core/services/signalr.service';
+import { AuthService } from '../auth/auth.service';
+import { ChangeDetectorRef } from '@angular/core';
+import { NgZone } from '@angular/core';
 
 @Component({
   selector: 'app-evaluations-page',
@@ -13,6 +17,10 @@ import { CommonModule } from '@angular/common';
 export class EvaluationsPageComponent implements OnInit, OnDestroy {
 
   private service = inject(EvaluationsService);
+  private signalRService = inject(SignalRService);
+  private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
+  private zone = inject(NgZone);
 
   evaluations: EvaluationResult[] = [];
   loading = false;
@@ -20,38 +28,62 @@ export class EvaluationsPageComponent implements OnInit, OnDestroy {
 
   private pollingSub?: Subscription;
 
-  ngOnInit() {
-    this.loadEvaluations();
-  }
+ngOnInit(): void {
+  // 1️⃣ Carga inicial por HTTP
+  this.loadEvaluations();
 
-  ngOnDestroy() {
-    this.pollingSub?.unsubscribe();
-  }
+    // 2️⃣ Conexión SignalR si hay token
+    if (this.authService.getToken()) {
+      this.signalRService.startConnection();
 
-  loadEvaluations() {
-    this.service.getAll().subscribe(res => {
-      this.evaluations = res;
-      this.startPollingIfNeeded();
+      // 3️⃣ Listener realtime
+      this.signalRService.onEvaluationUpdated((data) => {
+
+      console.log("SignalR update:", data);
+
+      this.zone.run(() => {
+
+      const index = this.evaluations.findIndex(e => e.id === data.id);
+
+      if (index !== -1) {
+
+        const updatedEvaluation = {
+          ...this.evaluations[index],
+          status: data.status,
+          overallScore: data.overallScore
+        };
+
+        this.evaluations = [
+          ...this.evaluations.slice(0, index),
+          updatedEvaluation,
+          ...this.evaluations.slice(index + 1)
+        ];
+      }
+
     });
-  }
 
-  startPollingIfNeeded() {
-    const hasProcessing = this.evaluations.some(e => e.status === 'Processing');
-
-    if (hasProcessing && !this.pollingSub) {
-      this.pollingSub = interval(3000).subscribe(() => {
-        this.service.getAll().subscribe(res => {
-          this.evaluations = res;
-
-          const stillProcessing = this.evaluations.some(e => e.status === 'Processing');
-          if (!stillProcessing) {
-            this.pollingSub?.unsubscribe();
-            this.pollingSub = undefined;
-          }
-        });
-      });
+  });
     }
   }
+  
+  ngOnDestroy() {
+    this.pollingSub?.unsubscribe();
+    //this.signalRService.stopConnection();
+  }
+
+loadEvaluations() {
+  this.service.getAll().subscribe(res => {
+    console.log("Evaluations recibidas:", res);
+    this.evaluations = res;
+    this.cdr.detectChanges(); // 👈 esto es lo que fuerza el render
+    this.signalRService.onEvaluationUpdated((data) => {
+  console.log("SignalR update:", data);
+});
+  },
+  err => {
+    console.error("Error cargando evaluations:", err);
+  });
+}
 
   onFilesSelected(event: any) {
     this.selectedFiles = Array.from(event.target.files);

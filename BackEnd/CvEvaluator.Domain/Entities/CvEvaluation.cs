@@ -40,20 +40,5 @@ public class CvEvaluation
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? EvaluatedAt { get; set; }
-
-    public void MarkAsCompleted(string jsonResult, decimal score)
-    {
-        EvaluationResult = jsonResult;
-        OverallScore = score;
-        Status = EvaluationStatus.Completed;
-        EvaluatedAt = DateTime.UtcNow;
-    }
-
-    public void MarkAsFailed(string error)
-    {
-        Status = EvaluationStatus.Failed;
-        ErrorMessage = error;
-    }
-
 }
 
