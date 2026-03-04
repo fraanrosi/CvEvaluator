@@ -5,8 +5,11 @@ namespace CvEvaluator.Domain.Entities;
 public class CvEvaluation
 {
     public Guid Id { get; set; }
-
     public Guid UserId { get; set; }
+    
+    // Relación con JobPosition
+    public Guid JobPositionId { get; set; }
+    public JobPosition JobPosition { get; set; } = default!;
 
     // Metadata archivo
     public string OriginalFilename { get; set; }

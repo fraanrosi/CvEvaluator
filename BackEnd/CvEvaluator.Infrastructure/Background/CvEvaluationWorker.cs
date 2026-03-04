@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Collections;
 using System.Text.Json;
 
 namespace CvEvaluator.Infrastructure.Background;
@@ -43,15 +42,18 @@ public class CvEvaluationWorker : BackgroundService
                 var llm = scope.ServiceProvider.GetRequiredService<ILlmClient>();
 
                 var evaluation = await db.Evaluations
+                    .Include(e => e.JobPosition)
                     .FirstOrDefaultAsync(e => e.Id == evaluationId, stoppingToken);
-
+                
                 if (evaluation == null)
                     continue;
 
                 try
-                {
-                    var prompt = CvEvaluationPrompt.Build(evaluation.ExtractedText);
-
+                {                    
+                    var prompt = CvEvaluationPrompt.Build(
+                        evaluation.ExtractedText,
+                        evaluation.JobPosition.Title,
+                        evaluation.JobPosition.Description);
                     var llmResponse = await llm.EvaluateCvAsync(prompt, stoppingToken);
 
                     if (string.IsNullOrWhiteSpace(llmResponse))
@@ -71,7 +73,7 @@ public class CvEvaluationWorker : BackgroundService
                     evaluation.OverallScore = result.Score;
                     evaluation.Status = EvaluationStatus.Completed;
                     evaluation.EvaluatedAt = DateTime.UtcNow;
-                }
+                }                
                 catch (OperationCanceledException)
                 {
                     throw;

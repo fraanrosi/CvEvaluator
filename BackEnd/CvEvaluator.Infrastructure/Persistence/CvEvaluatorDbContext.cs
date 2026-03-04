@@ -15,12 +15,41 @@ public class CvEvaluatorDbContext
     }
 
     public DbSet<CvEvaluation> Evaluations => Set<CvEvaluation>();
+    public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
+        ConfigureJobPosition(modelBuilder);
         ConfigureEvaluation(modelBuilder);
+    }
+
+    private static void ConfigureJobPosition(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<JobPosition>(entity =>
+        {
+            entity.HasKey(j => j.Id);
+
+            entity.Property(j => j.Title)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(j => j.Description)
+                .IsRequired();
+
+            entity.Property(j => j.CreatedAt)
+                .IsRequired();
+
+            entity.HasIndex(j => j.UserId);
+            entity.HasIndex(j => j.CreatedAt);
+
+            // Relación con Identity
+            entity.HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(j => j.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 
     private static void ConfigureEvaluation(ModelBuilder modelBuilder)
@@ -53,11 +82,18 @@ public class CvEvaluatorDbContext
             entity.HasIndex(e => e.FileHash);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.JobPositionId);
 
-            // 👇 RELACIÓN SIN navegación en Domain
+            // Relación con Identity
             entity.HasOne<ApplicationUser>()
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 🔥 NUEVA relación con JobPosition
+            entity.HasOne(e => e.JobPosition)
+                .WithMany(j => j.Evaluations)
+                .HasForeignKey(e => e.JobPositionId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }
