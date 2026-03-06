@@ -2,11 +2,15 @@ import { Routes } from '@angular/router';
 import { authGuard } from './features/auth/auth.guard';
 
 export const routes: Routes = [
+
+  // default
   {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'
   },
+
+  // auth
   {
     path: 'login',
     loadComponent: () =>
@@ -19,6 +23,8 @@ export const routes: Routes = [
       import('./features/auth/register/register.component')
         .then(m => m.RegisterComponent)
   },
+
+  // dashboard
   {
     path: 'dashboard',
     canActivate: [authGuard],
@@ -26,11 +32,52 @@ export const routes: Routes = [
       import('./features/dashboard/dashboard.component')
         .then(m => m.DashboardComponent)
   },
+
+  // job positions
   {
-    path: 'evaluations',
+    path: 'job-positions',
     canActivate: [authGuard],
-    loadComponent: () =>
-      import('./features/evaluations/evaluations-page.component')
-        .then(m => m.EvaluationsPageComponent)
+    children: [
+
+      // list
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/job-positions/pages/job-positions-page/job-positions-page.component')
+            .then(m => m.JobPositionsPageComponent)
+      },
+
+      // create
+      {
+        path: 'create',
+        loadComponent: () =>
+          import('./features/job-positions/pages/create-job-position/create-job-position.component')
+            .then(m => m.CreateJobPositionComponent)
+      },
+
+      // detail
+      {
+        path: ':id',
+        loadComponent: () =>
+          import('./features/job-positions/pages/job-position-detail/job-position-detail.component')
+            .then(m => m.JobPositionDetailComponent)
+      },
+
+      // edit
+      {
+        path: ':id/edit',
+        loadComponent: () =>
+          import('./features/job-positions/pages/edit-job-position/edit-job-position.component')
+            .then(m => m.EditJobPositionComponent)
+      }
+
+    ]
+  },
+
+  // fallback
+  {
+    path: '**',
+    redirectTo: 'dashboard'
   }
+
 ];

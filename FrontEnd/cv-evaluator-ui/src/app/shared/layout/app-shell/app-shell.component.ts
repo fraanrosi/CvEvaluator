@@ -1,14 +1,17 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { NavbarComponent } from './shared/layout/navbar/navbar.component';
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
+  selector: 'app-shell',
   standalone: true,
-  selector: 'app-root',
   imports: [RouterOutlet, NavbarComponent],
   template: `
     <app-navbar></app-navbar>
-    <router-outlet></router-outlet>
+
+    <main class="container">
+      <router-outlet></router-outlet>
+    </main>
   `
 })
-export class AppComponent {}
+export class AppShellComponent {}

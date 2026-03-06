@@ -1,0 +1,23 @@
+<div class="container">
+
+  <h2>Edit Job Position</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+
+    <div>
+      <label>Title</label>
+      <input formControlName="title" />
+    </div>
+
+    <div>
+      <label>Description</label>
+      <textarea rows="8" formControlName="description"></textarea>
+    </div>
+
+    <button type="submit" [disabled]="form.invalid">
+      Save
+    </button>
+
+  </form>
+
+</div>

@@ -1,0 +1,33 @@
+@if (loading()) {
+  <div>Loading...</div>
+}
+
+@if (job()) {
+
+  <div class="container">
+
+    <h2>{{ job()!.title }}</h2>
+
+    <p>{{ job()!.description }}</p>
+    <p>Created: {{ job()!.createdAt | date:'mediumDate' }}</p>
+
+    <hr />
+
+    <h3>Evaluations</h3>
+
+    <input type="file" (change)="onFileSelected($event)" />
+
+    @if (job()!.evaluations.length === 0) {
+      <div>No evaluations yet.</div>
+    }
+
+    @for (eval of job()!.evaluations; track eval.id) {
+      <div class="evaluation-card">
+        <h4>{{ eval.fileName }}</h4>
+        <p>Score: {{ eval.score }}</p>
+        <p>Evaluated: {{ eval.evaluatedAt | date:'short' }}</p>
+      </div>
+    }
+
+  </div>
+}

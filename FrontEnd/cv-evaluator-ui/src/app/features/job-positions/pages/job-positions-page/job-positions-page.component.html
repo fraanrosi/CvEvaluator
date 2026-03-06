@@ -1,0 +1,28 @@
+<div class="container">
+
+  <div class="header">
+    <h2>Job Positions</h2>
+    <button (click)="create()">+ Create</button>
+  </div>
+
+  @if (loading()) {
+    <div>Loading...</div>
+  }
+
+  @if (!loading() && jobPositions().length === 0) {
+    <div>No job positions yet.</div>
+  }
+
+  @if (!loading() && jobPositions().length > 0) {
+    <div class="cards">
+      @for (job of jobPositions(); track job.id) {
+        <div class="card" (click)="open(job)">
+          <h3>{{ job.title }}</h3>
+          <p>Created: {{ job.createdAt | date:'mediumDate' }}</p>
+          <p>{{ job.evaluationsCount ?? 0 }} evaluations</p>
+        </div>
+      }
+    </div>
+  }
+
+</div>
