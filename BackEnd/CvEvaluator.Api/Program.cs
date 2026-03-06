@@ -65,8 +65,7 @@ builder.Services.AddSingleton<EvaluationQueue>();
 builder.Services.AddSingleton<IEvaluationQueue>(sp =>
     sp.GetRequiredService<EvaluationQueue>());
 builder.Services.AddScoped<IJobPositionRepository, JobPositionRepository>();
-
-builder.Services.AddHostedService<CvEvaluationWorker>();
+builder.Services.AddScoped<IJobPositionService, JobPositionService>();
 
 // =========================
 // IDENTITY (PRIMERO)
