@@ -1,14 +1,15 @@
 import { Component, signal, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 import { JobPositionsService } from '../../job-positions.service';
+import { CvEvaluationService } from '../../../../core/services/cv-evaluation.service';
 import { JobPositionDetail } from '../../../../core/models/job-position-detail.model';
 
 @Component({
   selector: 'app-job-position-detail',
   standalone: true,
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   templateUrl: './job-position-detail.component.html',
   styleUrls: ['./job-position-detail.component.css']
 })
@@ -16,9 +17,11 @@ export class JobPositionDetailComponent {
 
   private route = inject(ActivatedRoute);
   private service = inject(JobPositionsService);
+  private cvEvaluationService = inject(CvEvaluationService);
 
   job = signal<JobPositionDetail | null>(null);
   loading = signal(false);
+  uploading = signal(false);
 
   private jobId = this.route.snapshot.paramMap.get('id')!;
 
@@ -43,7 +46,11 @@ export class JobPositionDetailComponent {
     const file = input.files?.[0];
     if (!file) return;
 
-    // this.evaluationsService.uploadPdf(file, this.jobId)
-    //   .subscribe(() => this.load());
+    this.uploading.set(true);
+    this.cvEvaluationService.uploadPdf(file, this.jobId).subscribe({
+      next: () => this.load(),
+      error: () => this.uploading.set(false),
+      complete: () => this.uploading.set(false)
+    });
   }
 }

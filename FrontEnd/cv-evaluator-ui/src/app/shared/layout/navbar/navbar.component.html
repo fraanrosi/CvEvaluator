@@ -1,22 +1,27 @@
-<nav class="navbar">
+<nav class="bg-gray-900 text-white px-6 py-3 flex items-center justify-between shadow">
 
-  <div class="logo">
-    <a routerLink="/dashboard">CvEvaluator</a>
+  <div class="font-bold text-lg">
+    <a routerLink="/dashboard" class="hover:text-blue-400 transition-colors">CvEvaluator</a>
   </div>
 
-  <div class="links">
+  <div class="flex items-center gap-6 text-sm">
 
-    <a routerLink="/dashboard" routerLinkActive="active">
-      Dashboard
-    </a>
-
-    <a routerLink="/job-positions" routerLinkActive="active">
+    <a routerLink="/job-positions" routerLinkActive="text-blue-400"
+       class="hover:text-blue-300 transition-colors">
       Job Positions
     </a>
 
-    <a routerLink="/job-positions/create" routerLinkActive="active">
-      Create Position
+    <a routerLink="/job-positions/create"
+       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg transition-colors">
+      + Create
     </a>
+
+    <span class="text-gray-400 text-xs hidden md:block">{{ email }}</span>
+
+    <button (click)="logout()"
+            class="text-gray-300 hover:text-red-400 transition-colors text-sm">
+      Logout
+    </button>
 
   </div>
 

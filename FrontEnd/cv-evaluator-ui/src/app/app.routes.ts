@@ -1,16 +1,10 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './features/auth/auth.guard';
+import { AppShellComponent } from './shared/layout/app-shell/app-shell.component';
 
 export const routes: Routes = [
 
-  // default
-  {
-    path: '',
-    redirectTo: 'dashboard',
-    pathMatch: 'full'
-  },
-
-  // auth
+  // public routes — no navbar
   {
     path: 'login',
     loadComponent: () =>
@@ -24,60 +18,69 @@ export const routes: Routes = [
         .then(m => m.RegisterComponent)
   },
 
-  // dashboard
+  // protected routes — with navbar (AppShell)
   {
-    path: 'dashboard',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./features/dashboard/dashboard.component')
-        .then(m => m.DashboardComponent)
-  },
-
-  // job positions
-  {
-    path: 'job-positions',
+    path: '',
+    component: AppShellComponent,
     canActivate: [authGuard],
     children: [
 
-      // list
+      // default redirect inside shell
       {
         path: '',
-        loadComponent: () =>
-          import('./features/job-positions/pages/job-positions-page/job-positions-page.component')
-            .then(m => m.JobPositionsPageComponent)
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
       },
 
-      // create
       {
-        path: 'create',
+        path: 'dashboard',
         loadComponent: () =>
-          import('./features/job-positions/pages/create-job-position/create-job-position.component')
-            .then(m => m.CreateJobPositionComponent)
+          import('./features/dashboard/dashboard.component')
+            .then(m => m.DashboardComponent)
       },
 
-      // detail
       {
-        path: ':id',
-        loadComponent: () =>
-          import('./features/job-positions/pages/job-position-detail/job-position-detail.component')
-            .then(m => m.JobPositionDetailComponent)
+        path: 'job-positions',
+        children: [
+
+          // list
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/job-positions/pages/job-positions-page/job-positions-page.component')
+                .then(m => m.JobPositionsPageComponent)
+          },
+
+          // create
+          {
+            path: 'create',
+            loadComponent: () =>
+              import('./features/job-positions/pages/create-job-position/create-job-position.component')
+                .then(m => m.CreateJobPositionComponent)
+          },
+
+          // detail
+          {
+            path: ':id',
+            loadComponent: () =>
+              import('./features/job-positions/pages/job-position-detail/job-position-detail.component')
+                .then(m => m.JobPositionDetailComponent)
+          },
+
+          // edit
+          {
+            path: ':id/edit',
+            loadComponent: () =>
+              import('./features/job-positions/pages/edit-job-position/edit-job-position.component')
+                .then(m => m.EditJobPositionComponent)
+          }
+
+        ]
       },
 
-      // edit
-      {
-        path: ':id/edit',
-        loadComponent: () =>
-          import('./features/job-positions/pages/edit-job-position/edit-job-position.component')
-            .then(m => m.EditJobPositionComponent)
-      }
+      { path: '**', redirectTo: 'dashboard' }
 
     ]
-  },
-
-  // fallback
-  {
-    path: '**',
-    redirectTo: 'dashboard'
   }
 
 ];

@@ -1,33 +1,65 @@
 @if (loading()) {
-  <div>Loading...</div>
+  <div class="flex justify-center py-12 text-gray-500">Loading...</div>
 }
 
 @if (job()) {
+  <div class="max-w-3xl mx-auto px-4 py-8">
 
-  <div class="container">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">{{ job()!.title }}</h2>
+      <a [routerLink]="['/job-positions', job()!.id, 'edit']"
+         class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium px-4 py-2 rounded-lg">
+        Edit
+      </a>
+    </div>
 
-    <h2>{{ job()!.title }}</h2>
+    <p class="text-gray-600 mb-2">{{ job()!.description }}</p>
+    <p class="text-sm text-gray-400 mb-8">Created: {{ job()!.createdAt | date:'mediumDate' }}</p>
 
-    <p>{{ job()!.description }}</p>
-    <p>Created: {{ job()!.createdAt | date:'mediumDate' }}</p>
+    <hr class="mb-8" />
 
-    <hr />
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xl font-semibold text-gray-700">Evaluations</h3>
 
-    <h3>Evaluations</h3>
-
-    <input type="file" (change)="onFileSelected($event)" />
+      <label class="cursor-pointer">
+        <span class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
+              [class.opacity-50]="uploading()"
+              [class.pointer-events-none]="uploading()">
+          {{ uploading() ? 'Uploading...' : 'Upload PDF' }}
+        </span>
+        <input
+          type="file"
+          accept=".pdf"
+          class="hidden"
+          [disabled]="uploading()"
+          (change)="onFileSelected($event)"
+        />
+      </label>
+    </div>
 
     @if (job()!.evaluations.length === 0) {
-      <div>No evaluations yet.</div>
-    }
-
-    @for (eval of job()!.evaluations; track eval.id) {
-      <div class="evaluation-card">
-        <h4>{{ eval.fileName }}</h4>
-        <p>Score: {{ eval.score }}</p>
-        <p>Evaluated: {{ eval.evaluatedAt | date:'short' }}</p>
+      <div class="text-gray-400 text-sm py-6 text-center border border-dashed rounded-lg">
+        No evaluations yet. Upload a PDF to get started.
       </div>
     }
+
+    <div class="space-y-3">
+      @for (eval of job()!.evaluations; track eval.id) {
+        <div class="bg-white shadow rounded-lg p-4 flex items-center justify-between">
+          <div>
+            <p class="font-medium text-gray-800">{{ eval.fileName }}</p>
+            <p class="text-sm text-gray-400">{{ eval.evaluatedAt | date:'short' }}</p>
+          </div>
+          @if (eval.score != null) {
+            <span class="text-lg font-bold text-blue-600">{{ eval.score }}</span>
+          } @else {
+            <span class="text-xs font-medium px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
+              Processing
+            </span>
+          }
+        </div>
+      }
+    </div>
 
   </div>
 }
