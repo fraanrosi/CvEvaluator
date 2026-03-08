@@ -1,5 +1,4 @@
-﻿using CvEvaluator.Application.DTOs;
-using CvEvaluator.Application.Interfaces;
+﻿using CvEvaluator.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -22,6 +21,7 @@ public class CvEvaluationController : ControllerBase
     [HttpPost("evaluate-pdf")]
     public async Task<IActionResult> EvaluatePdf(
     [FromForm] List<IFormFile> files,
+    [FromForm] Guid jobPositionId,
     CancellationToken ct)
     {
         if (files == null || files.Count == 0)
@@ -57,8 +57,9 @@ public class CvEvaluationController : ControllerBase
                 var evaluationId = await _cvEvaluationService.EvaluateAsync(
                     file,
                     userId,
+                    jobPositionId,
                     ct);
-
+                
                 responses.Add(new
                 {
                     evaluationId,

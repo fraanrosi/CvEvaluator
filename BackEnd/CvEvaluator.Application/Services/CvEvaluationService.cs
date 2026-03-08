@@ -3,7 +3,6 @@ using CvEvaluator.Application.Interfaces;
 using CvEvaluator.Domain.Entities;
 using CvEvaluator.Domain.Enums;
 using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -15,27 +14,37 @@ public class CvEvaluationService : ICvEvaluationService
     private readonly ICvEvaluationRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEvaluationQueue _evaluationQueue;
-
+    private readonly IJobPositionRepository _jobPositionRepository;
     public CvEvaluationService(
         IDocumentParser documentParser,
         ICvEvaluationRepository repository,
         IUnitOfWork unitOfWork,
-        IEvaluationQueue evaluationQueue)
+        IEvaluationQueue evaluationQueue,
+        IJobPositionRepository jobPositionRepository)
     {
         _documentParser = documentParser;
         _repository = repository;
         _unitOfWork = unitOfWork;
         _evaluationQueue = evaluationQueue;
+        _jobPositionRepository = jobPositionRepository;
     }
 
     public async Task<Guid> EvaluateAsync(
-        IFormFile file,
-        Guid userId,
-        CancellationToken ct)
+    IFormFile file,
+    Guid userId,
+    Guid jobPositionId,
+    CancellationToken ct)
     {
         if (file == null || file.Length == 0)
             throw new ArgumentException("Invalid file");
 
+
+        // 🔥 Validar que la posición exista y pertenezca al usuario
+        var jobPosition = await _jobPositionRepository.GetByIdAsync(jobPositionId, ct);
+
+        if (jobPosition == null || jobPosition.UserId != userId)
+            throw new InvalidOperationException("Invalid job position");
+        
         string extractedText;
 
         await using (var stream = file.OpenReadStream())
@@ -53,6 +62,7 @@ public class CvEvaluationService : ICvEvaluationService
         {
             Id = Guid.NewGuid(),
             UserId = userId,
+            JobPositionId = jobPositionId,
             OriginalFilename = file.FileName,
             FileSizeBytes = file.Length,
             FileHash = fileHash,
@@ -63,7 +73,7 @@ public class CvEvaluationService : ICvEvaluationService
 
         await _repository.AddAsync(evaluation, ct);
         await _unitOfWork.SaveChangesAsync(ct);
-        // 🔥 Encolamos inmediatamente
+
         await _evaluationQueue.EnqueueAsync(evaluation.Id);
 
         return evaluation.Id;
