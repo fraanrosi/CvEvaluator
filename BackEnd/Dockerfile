@@ -34,8 +34,8 @@ COPY --from=build /app/publish .
 # ---- Environment ----
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
-# NOTA: OLLAMA__BaseUrl se configura como variable de entorno en Render
-# NO se define aquí para mayor flexibilidad
+# NOTA: las variables de entorno (LlmProvider, Groq__ApiKey, ConnectionStrings, etc.)
+# se configuran en Fly.io via `fly secrets set` o en docker-compose para dev local
 
 EXPOSE 8080
 
