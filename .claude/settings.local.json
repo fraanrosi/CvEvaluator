@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet ef:*)",
+      "Bash(dotnet add package:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(git push:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)",
+      "Bash(git branch:*)",
+      "Bash(git stash:*)",
+      "Bash(git merge:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(docker-compose logs:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker build:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)"
+    ]
+  }
+}
