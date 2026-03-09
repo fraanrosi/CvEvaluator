@@ -6,17 +6,16 @@ public static class CvEvaluationPrompt
 @"You are an AI assistant evaluating a candidate CV.
 
 TARGET ROLE:
-Backend Software Engineer (.NET)
+{{JOB_TITLE}}
 
-REQUIREMENTS:
-- Strong experience with C# and .NET
-- Minimum 2 years professional experience
-- Basic database knowledge
+JOB DESCRIPTION:
+{{JOB_DESCRIPTION}}
 
 INSTRUCTIONS:
 - Analyze the CV content
 - The CV text may have lost visual formatting.
 - Infer structure from headings, line breaks, and keywords.
+- Evaluate the candidate strictly against the provided job description.
 - Produce a STRICT JSON response
 - Do NOT include explanations outside JSON
 - Do NOT include markdown
@@ -40,8 +39,14 @@ CV CONTENT:
 ===== CV END =====
 ";
 
-public static string Build(string cvText)
+    public static string Build(
+        string cvText,
+        string jobTitle,
+        string jobDescription)
     {
-        return Template.Replace("{{CV_TEXT}}", cvText);
+        return Template
+            .Replace("{{JOB_TITLE}}", jobTitle)
+            .Replace("{{JOB_DESCRIPTION}}", jobDescription)
+            .Replace("{{CV_TEXT}}", cvText);
     }
 }

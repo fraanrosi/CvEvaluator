@@ -1,8 +1,9 @@
 export interface EvaluationResult {
-  fileName: string;
-  decision: string;
-  score: number;
-  strengths: string[];
-  weaknesses: string[];
-  error?: string;
+  id: string;
+  originalFilename: string;
+  status: 'Processing' | 'Completed' | 'Failed';
+  overallScore?: number;
+  errorMessage?: string;
+  createdAt: string;
+  evaluatedAt?: string;
 }

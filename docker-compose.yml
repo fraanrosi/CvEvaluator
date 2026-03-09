@@ -1,4 +1,23 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cvevaluator-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: cvevaluator
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: francis1
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cvevaluator"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cvevaluator-net
+
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -41,9 +60,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - OLLAMA_BASE_URL=http://ollama:11434
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=cvevaluator;Username=postgres;Password=francis1
+      - Ollama__BaseUrl=http://ollama:11434
+      - LlmProvider=Ollama
     depends_on:
+      postgres:
+        condition: service_healthy
       ollama-init:
         condition: service_completed_successfully
     networks:
@@ -51,6 +74,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  postgres_data:
   ollama_data:
 
 networks:

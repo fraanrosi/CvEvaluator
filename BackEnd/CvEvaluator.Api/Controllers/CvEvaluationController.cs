@@ -1,31 +1,34 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using CvEvaluator.Application.Interfaces;
+﻿using CvEvaluator.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CvEvaluator.Api.Controllers;
 
 [ApiController]
-[Route("api/cv")]
+[Route("api/cvEvaluations")]
 public class CvEvaluationController : ControllerBase
 {
     private readonly ICvEvaluationService _cvEvaluationService;
-    private readonly IDocumentParser _documentParser;
 
     public CvEvaluationController(
-        ICvEvaluationService cvEvaluationService,
-        IDocumentParser documentParser)
+        ICvEvaluationService cvEvaluationService)
     {
         _cvEvaluationService = cvEvaluationService;
-        _documentParser = documentParser;
     }
 
+    [Authorize]
     [HttpPost("evaluate-pdf")]
     public async Task<IActionResult> EvaluatePdf(
-        [FromForm] List<IFormFile> files)
+    [FromForm] List<IFormFile> files,
+    [FromForm] Guid jobPositionId,
+    CancellationToken ct)
     {
         if (files == null || files.Count == 0)
             return BadRequest("At least one PDF file is required");
 
         var responses = new List<object>();
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         foreach (var file in files)
         {
@@ -49,35 +52,61 @@ public class CvEvaluationController : ControllerBase
                 continue;
             }
 
-            string text;
-
-            using (var stream = file.OpenReadStream())
+            try
             {
-                text = await _documentParser.ParseAsync(stream);
+                var evaluationId = await _cvEvaluationService.EvaluateAsync(
+                    file,
+                    userId,
+                    jobPositionId,
+                    ct);
+                
+                responses.Add(new
+                {
+                    evaluationId,
+                    fileName = file.FileName,
+                    status = "Processing"
+                });
             }
-
-            if (string.IsNullOrWhiteSpace(text))
+            catch (Exception ex)
             {
                 responses.Add(new
                 {
                     fileName = file.FileName,
-                    error = "Could not extract text from PDF"
+                    error = ex.InnerException
                 });
-                continue;
             }
-
-            var (decision, result) = await _cvEvaluationService.ExecuteAsync(text);
-
-            responses.Add(new
-            {
-                fileName = file.FileName,
-                decision = decision.ToString(),
-                score = result.Score,
-                strengths = result.Strengths,
-                weaknesses = result.Weaknesses
-            });
         }
 
-        return Ok(responses);
+        return Accepted(responses);
+    }
+
+    [Authorize]
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(
+    Guid id,
+    [FromServices] ICvEvaluationService service,
+    CancellationToken ct)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var result = await service.GetByIdAsync(id, userId, ct);
+
+        if (result == null)
+            return NotFound();
+
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> GetAll(
+    [FromServices] ICvEvaluationService service,
+    CancellationToken ct)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var result = await service.GetAllByUserAsync(userId, ct);
+
+        return Ok(result);
     }
 }

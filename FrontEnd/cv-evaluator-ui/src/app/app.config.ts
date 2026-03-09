@@ -3,14 +3,18 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
-import { apiKeyInterceptor } from './core/interceptors/api-key.interceptor';
+
+import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
+import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-
     provideHttpClient(
-      withInterceptors([apiKeyInterceptor])
+      withInterceptors([
+        jwtInterceptor,
+        httpErrorInterceptor
+      ])
     )
   ]
 };
