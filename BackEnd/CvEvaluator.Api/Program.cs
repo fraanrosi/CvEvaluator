@@ -53,7 +53,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerWithApiKey();
 
-builder.Services.AddHttpClient<ILlmClient, OllamaClient>();
+var llmProvider = builder.Configuration["LlmProvider"] ?? "Ollama";
+switch (llmProvider)
+{
+    case "Groq":
+        builder.Services.AddHttpClient<ILlmClient, GroqClient>();
+        break;
+    default:
+        builder.Services.AddHttpClient<ILlmClient, OllamaClient>();
+        break;
+}
 
 builder.Services.AddScoped<ICvEvaluationRepository, CvEvaluationRepository>();
 builder.Services.AddScoped<ICvEvaluationService, CvEvaluationService>();

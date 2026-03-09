@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, master]
+
+jobs:
+  backend:
+    name: Backend build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore BackEnd/CvEvaluator.Api/CvEvaluator.Api.csproj
+
+      - name: Build
+        run: dotnet build BackEnd/CvEvaluator.Api/CvEvaluator.Api.csproj --no-restore -c Release
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: FrontEnd/cv-evaluator-ui/package-lock.json
+
+      - name: Install
+        run: npm ci
+        working-directory: FrontEnd/cv-evaluator-ui
+
+      - name: Build
+        run: npm run build -- --configuration production
+        working-directory: FrontEnd/cv-evaluator-ui
