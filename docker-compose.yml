@@ -62,13 +62,14 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=cvevaluator;Username=postgres;Password=francis1
-      - Ollama__BaseUrl=http://ollama:11434
+      - Jwt__Key=SUPER_SECRET_KEY_MINIMO_32_CHARS
+      - Jwt__Issuer=CvEvaluator
+      - Jwt__Audience=CvEvaluatorUsers
+      - Ollama__BaseUrl=http://host.docker.internal:11434
       - LlmProvider=Ollama
     depends_on:
       postgres:
         condition: service_healthy
-      ollama-init:
-        condition: service_completed_successfully
     networks:
       - cvevaluator-net
     restart: unless-stopped
