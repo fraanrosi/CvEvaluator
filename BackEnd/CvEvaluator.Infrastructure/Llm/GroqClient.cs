@@ -15,7 +15,7 @@ public class GroqClient : ILlmClient
         var apiKey = configuration["Groq:ApiKey"]
             ?? throw new InvalidOperationException("Groq:ApiKey not configured");
 
-        _model = configuration["Groq:Model"] ?? "llama3-8b-8192";
+        _model = configuration["Groq:Model"] ?? "llama-3.1-8b-instant";
 
         _httpClient = httpClient;
         _httpClient.BaseAddress = new Uri("https://api.groq.com");
