@@ -45,7 +45,8 @@
 
     <div class="space-y-3">
       @for (eval of job()!.evaluations; track eval.id) {
-        <div class="bg-white shadow rounded-lg p-4 flex items-center justify-between">
+        <a [routerLink]="['/evaluations', eval.id]"
+           class="bg-white shadow rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer block">
           <div>
             <p class="font-medium text-gray-800">{{ eval.fileName }}</p>
             <p class="text-sm text-gray-400">{{ eval.evaluatedAt | date:'short' }}</p>
@@ -57,7 +58,7 @@
               Processing
             </span>
           }
-        </div>
+        </a>
       }
     </div>
 
