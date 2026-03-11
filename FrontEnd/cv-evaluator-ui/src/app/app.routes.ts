@@ -78,6 +78,13 @@ export const routes: Routes = [
         ]
       },
 
+      {
+        path: 'evaluations/:id',
+        loadComponent: () =>
+          import('./features/evaluations/pages/evaluation-detail/evaluation-detail.component')
+            .then(m => m.EvaluationDetailComponent)
+      },
+
       { path: '**', redirectTo: 'dashboard' }
 
     ]
