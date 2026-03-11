@@ -2,9 +2,11 @@
 using CvEvaluator.Application.Interfaces;
 using CvEvaluator.Domain.Entities;
 using CvEvaluator.Domain.Enums;
+using CvEvaluator.Domain.Models;
 using Microsoft.AspNetCore.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace CvEvaluator.Application.Services;
 
@@ -96,14 +98,36 @@ public class CvEvaluationService : ICvEvaluationService
         return evaluations.Select(MapToDto);
     }
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private static CvEvaluationDto MapToDto(CvEvaluation e)
     {
+        CvEvaluationResult? result = null;
+        if (!string.IsNullOrEmpty(e.EvaluationResult))
+        {
+            try { result = JsonSerializer.Deserialize<CvEvaluationResult>(e.EvaluationResult, JsonOptions); }
+            catch { /* ignore malformed JSON */ }
+        }
+
         return new CvEvaluationDto
         {
             Id = e.Id,
+            JobPositionId = e.JobPositionId,
             OriginalFilename = e.OriginalFilename,
             Status = e.Status,
             OverallScore = e.OverallScore,
+            TechnicalScore = e.TechnicalScore,
+            ExperienceScore = e.ExperienceScore,
+            EducationScore = e.EducationScore,
+            Strengths = result?.Strengths,
+            Weaknesses = result?.Weaknesses,
+            YearsExperience = result?.YearsExperience,
+            MatchesRequirements = result?.MatchesRequirements,
+            ModelUsed = e.ModelUsed,
+            ProcessingTimeMs = e.ProcessingTimeMs,
             ErrorMessage = e.ErrorMessage,
             CreatedAt = e.CreatedAt,
             EvaluatedAt = e.EvaluatedAt

@@ -10,6 +10,6 @@ export interface EvaluationSummary {
   id: string;
   candidateName: string;
   fileName: string;
-  score: number;
+  score: number | null;
   evaluatedAt: string;
 }

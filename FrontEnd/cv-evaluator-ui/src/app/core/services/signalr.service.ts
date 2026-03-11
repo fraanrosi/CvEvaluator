@@ -1,16 +1,26 @@
 import * as signalR from '@microsoft/signalr';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { Subject } from 'rxjs';
 import { AuthService } from '../../features/auth/auth.service';
 import { environment } from '../../../environments/environment';
 
+export interface EvaluationUpdate {
+  id: string;
+  status: string;
+  overallScore: number | null;
+  errorMessage: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SignalRService {
+  private authService = inject(AuthService);
+  private hubConnection: signalR.HubConnection | null = null;
 
-  private hubConnection!: signalR.HubConnection;
+  evaluationUpdated$ = new Subject<EvaluationUpdate>();
 
-  constructor(private authService: AuthService) {}
+  startConnection() {
+    if (this.hubConnection) return;
 
-  public startConnection() {
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(`${environment.hubBaseUrl}/hubs/evaluations`, {
         accessTokenFactory: () => this.authService.getToken() ?? ''
@@ -18,15 +28,18 @@ export class SignalRService {
       .withAutomaticReconnect()
       .build();
 
+    this.hubConnection.on('EvaluationUpdated', (data: EvaluationUpdate) => {
+      this.evaluationUpdated$.next(data);
+    });
+
     this.hubConnection
       .start()
-      .then(() => console.log('SignalR conectado 🔥'))
-      .catch(err => console.error(err));
+      .then(() => console.log('SignalR connected'))
+      .catch(err => console.error('SignalR error:', err));
   }
 
-  public onEvaluationUpdated(callback: (data: any) => void) {
-    this.hubConnection.on('EvaluationUpdated', (data) => {
-        callback(data);
-    });
+  stopConnection() {
+    this.hubConnection?.stop();
+    this.hubConnection = null;
   }
 }
