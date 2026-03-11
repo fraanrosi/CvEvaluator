@@ -1,9 +1,11 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 import { JobPositionsService } from '../../job-positions.service';
 import { CvEvaluationService } from '../../../../core/services/cv-evaluation.service';
+import { SignalRService } from '../../../../core/services/signalr.service';
 import { JobPositionDetail } from '../../../../core/models/job-position-detail.model';
 
 @Component({
@@ -13,11 +15,13 @@ import { JobPositionDetail } from '../../../../core/models/job-position-detail.m
   templateUrl: './job-position-detail.component.html',
   styleUrls: ['./job-position-detail.component.css']
 })
-export class JobPositionDetailComponent {
+export class JobPositionDetailComponent implements OnInit, OnDestroy {
 
   private route = inject(ActivatedRoute);
   private service = inject(JobPositionsService);
   private cvEvaluationService = inject(CvEvaluationService);
+  private signalR = inject(SignalRService);
+  private sub?: Subscription;
 
   job = signal<JobPositionDetail | null>(null);
   loading = signal(false);
@@ -25,8 +29,23 @@ export class JobPositionDetailComponent {
 
   private jobId = this.route.snapshot.paramMap.get('id')!;
 
-  constructor() {
+  ngOnInit() {
     this.load();
+    this.signalR.startConnection();
+    this.sub = this.signalR.evaluationUpdated$.subscribe(update => {
+      const current = this.job();
+      if (!current) return;
+
+      const eval_ = current.evaluations.find(e => e.id === update.id);
+      if (eval_) {
+        eval_.score = update.overallScore;
+        this.job.set({ ...current });
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
   }
 
   load() {
