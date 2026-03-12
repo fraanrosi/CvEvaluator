@@ -12,13 +12,16 @@ public class IdentityService : IIdentityService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly ISubscriptionService _subscriptionService;
 
     public IdentityService(
         UserManager<ApplicationUser> userManager,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ISubscriptionService subscriptionService)
     {
         _userManager = userManager;
         _configuration = configuration;
+        _subscriptionService = subscriptionService;
     }
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request)
@@ -38,6 +41,8 @@ public class IdentityService : IIdentityService
 
         if (!result.Succeeded)
             throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+        await _subscriptionService.AssignFreePlanAsync(user.Id, CancellationToken.None);
 
         var token = GenerateJwtToken(user);
 

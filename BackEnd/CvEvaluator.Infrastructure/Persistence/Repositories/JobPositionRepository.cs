@@ -48,4 +48,7 @@ public class JobPositionRepository : IJobPositionRepository
     {
         _context.JobPositions.Remove(jobPosition);
     }
+
+    public async Task<int> CountByUserIdAsync(Guid userId, CancellationToken ct)
+        => await _context.JobPositions.CountAsync(j => j.UserId == userId, ct);
 }

@@ -1,4 +1,5 @@
 ﻿using CvEvaluator.Domain.Entities;
+using CvEvaluator.Domain.Enums;
 using CvEvaluator.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -16,6 +17,13 @@ public class CvEvaluatorDbContext
 
     public DbSet<CvEvaluation> Evaluations => Set<CvEvaluation>();
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
+    public DbSet<Plan> Plans => Set<Plan>();
+    public DbSet<UserSubscription> UserSubscriptions => Set<UserSubscription>();
+    public DbSet<MonthlyUsageCounter> MonthlyUsageCounters => Set<MonthlyUsageCounter>();
+
+    private static readonly Guid FreePlanId     = new("00000000-0000-0000-0000-000000000001");
+    private static readonly Guid ProPlanId      = new("00000000-0000-0000-0000-000000000002");
+    private static readonly Guid BusinessPlanId = new("00000000-0000-0000-0000-000000000003");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,6 +31,9 @@ public class CvEvaluatorDbContext
 
         ConfigureJobPosition(modelBuilder);
         ConfigureEvaluation(modelBuilder);
+        ConfigurePlan(modelBuilder);
+        ConfigureUserSubscription(modelBuilder);
+        ConfigureMonthlyUsageCounter(modelBuilder);
     }
 
     private static void ConfigureJobPosition(ModelBuilder modelBuilder)
@@ -48,6 +59,64 @@ public class CvEvaluatorDbContext
             entity.HasOne<ApplicationUser>()
                 .WithMany()
                 .HasForeignKey(j => j.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigurePlan(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Plan>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+
+            entity.Property(p => p.Name)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.HasData(
+                new Plan { Id = FreePlanId,     Name = "Free",     MaxEvaluationsPerMonth = 5,  MaxJobPositions = 2  },
+                new Plan { Id = ProPlanId,      Name = "Pro",      MaxEvaluationsPerMonth = 50, MaxJobPositions = 20 },
+                new Plan { Id = BusinessPlanId, Name = "Business", MaxEvaluationsPerMonth = -1, MaxJobPositions = -1 }
+            );
+        });
+    }
+
+    private static void ConfigureUserSubscription(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<UserSubscription>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+
+            entity.Property(s => s.Status)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.HasIndex(s => s.UserId);
+
+            entity.HasOne(s => s.Plan)
+                .WithMany(p => p.Subscriptions)
+                .HasForeignKey(s => s.PlanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureMonthlyUsageCounter(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<MonthlyUsageCounter>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+
+            entity.HasIndex(c => new { c.UserId, c.Year, c.Month })
+                .IsUnique();
+
+            entity.HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

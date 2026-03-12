@@ -3,7 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 import { CvEvaluationService } from '../../../../core/services/cv-evaluation.service';
-import { EvaluationResult } from '../../../../core/models/evaluation-result.model';
+import { EvaluationResult, isCompleted, isProcessing, isFailed } from '../../../../core/models/evaluation-result.model';
 
 @Component({
   selector: 'app-evaluation-detail',
@@ -18,6 +18,10 @@ export class EvaluationDetailComponent implements OnInit {
 
   evaluation = signal<EvaluationResult | null>(null);
   loading = signal(false);
+
+  isCompleted = isCompleted;
+  isProcessing = isProcessing;
+  isFailed = isFailed;
 
   private evalId = this.route.snapshot.paramMap.get('id')!;
 
