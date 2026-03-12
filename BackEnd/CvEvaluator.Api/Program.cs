@@ -1,6 +1,7 @@
 ﻿using CvEvaluator.Api.Extensions;
 using CvEvaluator.Application.Interfaces;
 using CvEvaluator.Application.Services;
+using CvEvaluator.Domain.Exceptions;
 using CvEvaluator.Infrastructure.Background;
 using CvEvaluator.Infrastructure.Identity;
 using CvEvaluator.Infrastructure.Llm;
@@ -75,6 +76,8 @@ builder.Services.AddSingleton<IEvaluationQueue>(sp =>
     sp.GetRequiredService<EvaluationQueue>());
 builder.Services.AddScoped<IJobPositionRepository, JobPositionRepository>();
 builder.Services.AddScoped<IJobPositionService, JobPositionService>();
+builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 
 // =========================
 // IDENTITY (PRIMERO)
@@ -217,8 +220,20 @@ app.UseExceptionHandler(errorApp =>
     errorApp.Run(async context =>
     {
         var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
-        logger.LogError(exception, "Unhandled exception");
 
+        if (exception is PlanLimitExceededException limitEx)
+        {
+            context.Response.StatusCode = 402;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new
+            {
+                error = limitEx.Message,
+                limitType = limitEx.LimitType
+            });
+            return;
+        }
+
+        logger.LogError(exception, "Unhandled exception");
         context.Response.StatusCode = 500;
         await context.Response.WriteAsync("Unexpected server error");
     });

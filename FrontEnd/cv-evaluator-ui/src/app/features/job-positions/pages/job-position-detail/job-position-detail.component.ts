@@ -2,6 +2,7 @@ import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { JobPositionsService } from '../../job-positions.service';
 import { CvEvaluationService } from '../../../../core/services/cv-evaluation.service';
@@ -26,6 +27,7 @@ export class JobPositionDetailComponent implements OnInit, OnDestroy {
   job = signal<JobPositionDetail | null>(null);
   loading = signal(false);
   uploading = signal(false);
+  uploadError = signal<string | null>(null);
 
   private jobId = this.route.snapshot.paramMap.get('id')!;
 
@@ -66,10 +68,18 @@ export class JobPositionDetailComponent implements OnInit, OnDestroy {
     if (!file) return;
 
     this.uploading.set(true);
+    this.uploadError.set(null);
+
     this.cvEvaluationService.uploadPdf(file, this.jobId).subscribe({
-      next: () => this.load(),
-      error: () => this.uploading.set(false),
-      complete: () => this.uploading.set(false)
+      next: () => { this.uploading.set(false); this.load(); },
+      error: (err: HttpErrorResponse) => {
+        this.uploading.set(false);
+        if (err.status === 402) {
+          this.uploadError.set(err.error?.error ?? 'You have reached the evaluation limit of your current plan.');
+        } else {
+          this.uploadError.set('Upload failed. Please try again.');
+        }
+      }
     });
   }
 }

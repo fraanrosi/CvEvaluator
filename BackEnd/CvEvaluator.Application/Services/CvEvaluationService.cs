@@ -17,18 +17,22 @@ public class CvEvaluationService : ICvEvaluationService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEvaluationQueue _evaluationQueue;
     private readonly IJobPositionRepository _jobPositionRepository;
+    private readonly ISubscriptionService _subscriptionService;
+
     public CvEvaluationService(
         IDocumentParser documentParser,
         ICvEvaluationRepository repository,
         IUnitOfWork unitOfWork,
         IEvaluationQueue evaluationQueue,
-        IJobPositionRepository jobPositionRepository)
+        IJobPositionRepository jobPositionRepository,
+        ISubscriptionService subscriptionService)
     {
         _documentParser = documentParser;
         _repository = repository;
         _unitOfWork = unitOfWork;
         _evaluationQueue = evaluationQueue;
         _jobPositionRepository = jobPositionRepository;
+        _subscriptionService = subscriptionService;
     }
 
     public async Task<Guid> EvaluateAsync(
@@ -40,8 +44,9 @@ public class CvEvaluationService : ICvEvaluationService
         if (file == null || file.Length == 0)
             throw new ArgumentException("Invalid file");
 
+        await _subscriptionService.CheckEvaluationLimitAsync(userId, ct);
 
-        // 🔥 Validar que la posición exista y pertenezca al usuario
+        // Validar que la posición exista y pertenezca al usuario
         var jobPosition = await _jobPositionRepository.GetByIdAsync(jobPositionId, ct);
 
         if (jobPosition == null || jobPosition.UserId != userId)
@@ -76,6 +81,7 @@ public class CvEvaluationService : ICvEvaluationService
         await _repository.AddAsync(evaluation, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
+        await _subscriptionService.IncrementEvaluationCountAsync(userId, ct);
         await _evaluationQueue.EnqueueAsync(evaluation.Id);
 
         return evaluation.Id;

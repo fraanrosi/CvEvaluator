@@ -85,6 +85,13 @@ export const routes: Routes = [
             .then(m => m.EvaluationDetailComponent)
       },
 
+      {
+        path: 'subscription',
+        loadComponent: () =>
+          import('./features/subscription/subscription-page.component')
+            .then(m => m.SubscriptionPageComponent)
+      },
+
       { path: '**', redirectTo: 'dashboard' }
 
     ]

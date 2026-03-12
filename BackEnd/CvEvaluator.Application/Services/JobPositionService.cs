@@ -8,11 +8,16 @@ public class JobPositionService : IJobPositionService
 {
     private readonly IJobPositionRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ISubscriptionService _subscriptionService;
 
-    public JobPositionService(IJobPositionRepository repository, IUnitOfWork unitOfWork)
+    public JobPositionService(
+        IJobPositionRepository repository,
+        IUnitOfWork unitOfWork,
+        ISubscriptionService subscriptionService)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
+        _subscriptionService = subscriptionService;
     }
 
     public async Task<IEnumerable<JobPositionDto>> GetAllAsync(Guid userId, CancellationToken ct)
@@ -55,6 +60,8 @@ public class JobPositionService : IJobPositionService
 
     public async Task<JobPositionDto> CreateAsync(CreateJobPositionDto dto, Guid userId, CancellationToken ct)
     {
+        await _subscriptionService.CheckJobPositionLimitAsync(userId, ct);
+
         var position = new JobPosition
         {
             Id = Guid.NewGuid(),

@@ -10,4 +10,5 @@ public interface IJobPositionRepository
     Task AddAsync(JobPosition jobPosition, CancellationToken ct);
     void Update(JobPosition jobPosition);
     void Delete(JobPosition jobPosition);
+    Task<int> CountByUserIdAsync(Guid userId, CancellationToken ct);
 }
