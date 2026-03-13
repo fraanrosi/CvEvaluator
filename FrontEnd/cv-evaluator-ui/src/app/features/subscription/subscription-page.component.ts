@@ -2,11 +2,12 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SubscriptionService } from '../../core/services/subscription.service';
 import { UserSubscription, Plan } from '../../core/models/subscription.model';
+import { SpinnerComponent } from '../../shared/components/spinner/spinner.component';
 
 @Component({
   selector: 'app-subscription-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SpinnerComponent],
   templateUrl: './subscription-page.component.html'
 })
 export class SubscriptionPageComponent implements OnInit {

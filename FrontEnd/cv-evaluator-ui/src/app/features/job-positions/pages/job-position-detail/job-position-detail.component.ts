@@ -8,11 +8,13 @@ import { JobPositionsService } from '../../job-positions.service';
 import { CvEvaluationService } from '../../../../core/services/cv-evaluation.service';
 import { SignalRService } from '../../../../core/services/signalr.service';
 import { JobPositionDetail } from '../../../../core/models/job-position-detail.model';
+import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
+import { ToastService } from '../../../../shared/components/toast/toast.service';
 
 @Component({
   selector: 'app-job-position-detail',
   standalone: true,
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, SpinnerComponent],
   templateUrl: './job-position-detail.component.html',
   styleUrls: ['./job-position-detail.component.css']
 })
@@ -22,6 +24,7 @@ export class JobPositionDetailComponent implements OnInit, OnDestroy {
   private service = inject(JobPositionsService);
   private cvEvaluationService = inject(CvEvaluationService);
   private signalR = inject(SignalRService);
+  private toast = inject(ToastService);
   private sub?: Subscription;
 
   job = signal<JobPositionDetail | null>(null);
@@ -71,13 +74,20 @@ export class JobPositionDetailComponent implements OnInit, OnDestroy {
     this.uploadError.set(null);
 
     this.cvEvaluationService.uploadPdf(file, this.jobId).subscribe({
-      next: () => { this.uploading.set(false); this.load(); },
+      next: () => {
+        this.uploading.set(false);
+        this.toast.success('PDF uploaded, evaluation in progress...');
+        this.load();
+      },
       error: (err: HttpErrorResponse) => {
         this.uploading.set(false);
         if (err.status === 402) {
-          this.uploadError.set(err.error?.error ?? 'You have reached the evaluation limit of your current plan.');
+          const msg = err.error?.error ?? 'You have reached the evaluation limit of your current plan.';
+          this.uploadError.set(msg);
+          this.toast.warning(msg);
         } else {
           this.uploadError.set('Upload failed. Please try again.');
+          this.toast.error('Upload failed');
         }
       }
     });

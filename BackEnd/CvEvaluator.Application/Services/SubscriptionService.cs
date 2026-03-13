@@ -36,8 +36,14 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<UserSubscriptionDto> GetUserSubscriptionAsync(Guid userId, CancellationToken ct)
     {
-        var subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, ct)
-            ?? throw new InvalidOperationException("No active subscription found");
+        var subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, ct);
+
+        if (subscription is null)
+        {
+            await AssignFreePlanAsync(userId, ct);
+            subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, ct)
+                ?? throw new InvalidOperationException("Failed to assign free plan");
+        }
 
         var now = DateTime.UtcNow;
         var counter = await _subscriptionRepository.GetCounterAsync(userId, now.Year, now.Month, ct);
@@ -76,8 +82,14 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task CheckEvaluationLimitAsync(Guid userId, CancellationToken ct)
     {
-        var subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, ct)
-            ?? throw new InvalidOperationException("No active subscription found");
+        var subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, ct);
+
+        if (subscription is null)
+        {
+            await AssignFreePlanAsync(userId, ct);
+            subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, ct)
+                ?? throw new InvalidOperationException("Failed to assign free plan");
+        }
 
         var limit = subscription.Plan.MaxEvaluationsPerMonth;
         if (limit == -1) return;
@@ -94,8 +106,14 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task CheckJobPositionLimitAsync(Guid userId, CancellationToken ct)
     {
-        var subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, ct)
-            ?? throw new InvalidOperationException("No active subscription found");
+        var subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, ct);
+
+        if (subscription is null)
+        {
+            await AssignFreePlanAsync(userId, ct);
+            subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, ct)
+                ?? throw new InvalidOperationException("Failed to assign free plan");
+        }
 
         var limit = subscription.Plan.MaxJobPositions;
         if (limit == -1) return;

@@ -4,11 +4,12 @@ import { DatePipe } from '@angular/common';
 
 import { CvEvaluationService } from '../../../../core/services/cv-evaluation.service';
 import { EvaluationResult, isCompleted, isProcessing, isFailed } from '../../../../core/models/evaluation-result.model';
+import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
 
 @Component({
   selector: 'app-evaluation-detail',
   standalone: true,
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, SpinnerComponent],
   templateUrl: './evaluation-detail.component.html'
 })
 export class EvaluationDetailComponent implements OnInit {

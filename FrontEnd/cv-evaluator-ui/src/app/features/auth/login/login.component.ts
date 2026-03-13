@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth.service';
+import { ToastService } from '../../../shared/components/toast/toast.service';
 
 @Component({
   standalone: true,
@@ -68,6 +69,7 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private toast = inject(ToastService);
 
   loading = false;
   error: string | null = null;
@@ -88,9 +90,11 @@ export class LoginComponent {
     this.auth.login(email!, password!)
       .subscribe({
         next: () => {
+          this.toast.success('Welcome back!');
           this.router.navigate(['/dashboard']);
         },
         error: () => {
+          this.toast.error('Invalid credentials');
           this.error = 'Credenciales inválidas';
           this.loading = false;
         }

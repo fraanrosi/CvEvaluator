@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { JobPositionsService } from '../../job-positions.service';
+import { ToastService } from '../../../../shared/components/toast/toast.service';
 
 @Component({
   selector: 'app-edit-job-position',
@@ -17,6 +18,7 @@ export class EditJobPositionComponent {
   private service = inject(JobPositionsService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private toast = inject(ToastService);
 
   private jobId = this.route.snapshot.paramMap.get('id')!;
 
@@ -38,6 +40,12 @@ export class EditJobPositionComponent {
     if (this.form.invalid) return;
 
     this.service.update(this.jobId, this.form.getRawValue())
-      .subscribe(() => this.router.navigate(['/job-positions']));
+      .subscribe({
+        next: () => {
+          this.toast.success('Job position updated');
+          this.router.navigate(['/job-positions']);
+        },
+        error: () => this.toast.error('Failed to update job position')
+      });
   }
 }
