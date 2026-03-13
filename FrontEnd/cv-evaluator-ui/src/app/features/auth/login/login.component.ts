@@ -11,7 +11,8 @@ import { AuthService } from '../auth.service';
   template: `
   <div class="min-h-screen flex items-center justify-center bg-gray-100">
     <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-      <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+      <h1 class="text-2xl font-bold text-center text-blue-600 mb-1">CvEvaluator</h1>
+      <h2 class="text-xl font-semibold mb-6 text-center text-gray-500">Login</h2>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
 
