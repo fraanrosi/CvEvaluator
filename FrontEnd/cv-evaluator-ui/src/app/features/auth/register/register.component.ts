@@ -9,6 +9,7 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
+import { ToastService } from '../../../shared/components/toast/toast.service';
 
 function passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
   const password = group.get('password')?.value;
@@ -108,6 +109,7 @@ export class RegisterComponent {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private toast = inject(ToastService);
 
   loading = false;
   error: string | null = null;
@@ -130,9 +132,11 @@ export class RegisterComponent {
     this.auth.register(email!, password!, fullName!)
       .subscribe({
         next: () => {
+          this.toast.success('Account created! Please log in.');
           this.router.navigate(['/login']);
         },
         error: () => {
+          this.toast.error('Registration failed');
           this.error = 'Error al registrar usuario';
           this.loading = false;
         }

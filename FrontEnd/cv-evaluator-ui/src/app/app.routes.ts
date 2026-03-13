@@ -92,9 +92,15 @@ export const routes: Routes = [
             .then(m => m.SubscriptionPageComponent)
       },
 
-      { path: '**', redirectTo: 'dashboard' }
-
     ]
+  },
+
+  // 404 — catch-all
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./features/errors/not-found.component')
+        .then(m => m.NotFoundComponent)
   }
 
 ];
