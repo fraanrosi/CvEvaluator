@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { JobPositionsService } from '../../job-positions.service';
+import { ToastService } from '../../../../shared/components/toast/toast.service';
 
 @Component({
   selector: 'app-create-job-position',
@@ -17,6 +18,7 @@ export class CreateJobPositionComponent {
   private fb = inject(FormBuilder);
   private service = inject(JobPositionsService);
   private router = inject(Router);
+  private toast = inject(ToastService);
 
   form = this.fb.nonNullable.group({
     title: ['', Validators.required],
@@ -30,12 +32,18 @@ export class CreateJobPositionComponent {
     this.errorMessage.set(null);
 
     this.service.create(this.form.getRawValue()).subscribe({
-      next: () => this.router.navigate(['/job-positions']),
+      next: () => {
+        this.toast.success('Job position created');
+        this.router.navigate(['/job-positions']);
+      },
       error: (err: HttpErrorResponse) => {
         if (err.status === 402) {
-          this.errorMessage.set(err.error?.error ?? 'You have reached the limit of your current plan.');
+          const msg = err.error?.error ?? 'You have reached the limit of your current plan.';
+          this.errorMessage.set(msg);
+          this.toast.warning(msg);
         } else {
           this.errorMessage.set('An unexpected error occurred. Please try again.');
+          this.toast.error('Failed to create job position');
         }
       }
     });

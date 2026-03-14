@@ -9,7 +9,7 @@
   </div>
 
   @if (loading()) {
-    <div class="text-center py-12 text-gray-400">Loading...</div>
+    <app-spinner message="Loading positions..." />
   }
 
   @if (!loading() && jobPositions().length === 0) {

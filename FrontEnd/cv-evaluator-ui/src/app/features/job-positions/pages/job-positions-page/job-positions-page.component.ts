@@ -4,11 +4,12 @@ import { DatePipe } from '@angular/common';
 
 import { JobPositionsService } from '../../job-positions.service';
 import { JobPosition } from '../../../../core/models/job-position.model';
+import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
 
 @Component({
   selector: 'app-job-positions-page',
   standalone: true,
-  imports: [DatePipe],
+  imports: [DatePipe, SpinnerComponent],
   templateUrl: './job-positions-page.component.html',
   styleUrls: ['./job-positions-page.component.css']
 })
