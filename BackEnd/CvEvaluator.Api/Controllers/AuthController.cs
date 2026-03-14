@@ -1,11 +1,13 @@
 ﻿using CvEvaluator.Application.DTOs;
 using CvEvaluator.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CvEvaluator.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[EnableRateLimiting("auth")]
 public class AuthController : ControllerBase
 {
     private readonly IIdentityService _identityService;
