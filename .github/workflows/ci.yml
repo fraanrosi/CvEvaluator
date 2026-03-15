@@ -25,6 +25,9 @@ jobs:
   frontend:
     name: Frontend build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        configuration: [production, staging]
     steps:
       - uses: actions/checkout@v4
 
@@ -39,6 +42,6 @@ jobs:
         run: npm ci
         working-directory: FrontEnd/cv-evaluator-ui
 
-      - name: Build
-        run: npm run build -- --configuration production
+      - name: Build (${{ matrix.configuration }})
+        run: npm run build -- --configuration ${{ matrix.configuration }}
         working-directory: FrontEnd/cv-evaluator-ui

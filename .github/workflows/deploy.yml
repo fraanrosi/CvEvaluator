@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy Production
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy-backend:
-    name: Deploy backend to Render
+    name: Deploy backend to Render (production)
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render deploy
