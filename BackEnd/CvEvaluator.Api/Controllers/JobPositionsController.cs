@@ -2,6 +2,7 @@ using CvEvaluator.Application.DTOs;
 using CvEvaluator.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace CvEvaluator.Api.Controllers;
@@ -9,6 +10,7 @@ namespace CvEvaluator.Api.Controllers;
 [ApiController]
 [Route("api/jobpositions")]
 [Authorize]
+[EnableRateLimiting("general")]
 public class JobPositionsController : ControllerBase
 {
     private readonly IJobPositionService _jobPositionService;

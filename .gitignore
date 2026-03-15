@@ -366,3 +366,13 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /BackEnd/CvEvaluator.Api/appsettings.Production.json
+
+# Node (root-level accidental installs)
+/node_modules/
+
+# VS Code
+.vscode/
+
+# Playwright artifacts
+tests/frontend/test-results/
+tests/frontend/screenshots/

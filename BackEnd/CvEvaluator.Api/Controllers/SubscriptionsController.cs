@@ -1,6 +1,7 @@
 using CvEvaluator.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace CvEvaluator.Api.Controllers;
@@ -8,6 +9,7 @@ namespace CvEvaluator.Api.Controllers;
 [ApiController]
 [Route("api/subscriptions")]
 [Authorize]
+[EnableRateLimiting("general")]
 public class SubscriptionsController : ControllerBase
 {
     private readonly ISubscriptionService _subscriptionService;
