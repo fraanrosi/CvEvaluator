@@ -1,12 +1,14 @@
 ﻿using CvEvaluator.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace CvEvaluator.Api.Controllers;
 
 [ApiController]
 [Route("api/cvEvaluations")]
+[EnableRateLimiting("general")]
 public class CvEvaluationController : ControllerBase
 {
     private readonly ICvEvaluationService _cvEvaluationService;
@@ -30,6 +32,8 @@ public class CvEvaluationController : ControllerBase
         var responses = new List<object>();
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+        const long maxFileSize = 10 * 1024 * 1024; // 10 MB
+
         foreach (var file in files)
         {
             if (file.Length == 0)
@@ -38,6 +42,16 @@ public class CvEvaluationController : ControllerBase
                 {
                     fileName = file.FileName,
                     error = "Empty file"
+                });
+                continue;
+            }
+
+            if (file.Length > maxFileSize)
+            {
+                responses.Add(new
+                {
+                    fileName = file.FileName,
+                    error = "File exceeds the 10 MB size limit"
                 });
                 continue;
             }
