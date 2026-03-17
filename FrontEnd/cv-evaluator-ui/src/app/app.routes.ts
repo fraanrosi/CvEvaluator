@@ -4,6 +4,15 @@ import { AppShellComponent } from './shared/layout/app-shell/app-shell.component
 
 export const routes: Routes = [
 
+  // landing — public
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./features/landing/landing.component')
+        .then(m => m.LandingComponent)
+  },
+
   // public routes — no navbar
   {
     path: 'login',
@@ -17,6 +26,24 @@ export const routes: Routes = [
       import('./features/auth/register/register.component')
         .then(m => m.RegisterComponent)
   },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password.component')
+        .then(m => m.ForgotPasswordComponent)
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password.component')
+        .then(m => m.ResetPasswordComponent)
+  },
+  {
+    path: 'confirm-email',
+    loadComponent: () =>
+      import('./features/auth/confirm-email/confirm-email.component')
+        .then(m => m.ConfirmEmailComponent)
+  },
 
   // protected routes — with navbar (AppShell)
   {
@@ -24,13 +51,6 @@ export const routes: Routes = [
     component: AppShellComponent,
     canActivate: [authGuard],
     children: [
-
-      // default redirect inside shell
-      {
-        path: '',
-        redirectTo: 'dashboard',
-        pathMatch: 'full'
-      },
 
       {
         path: 'dashboard',
