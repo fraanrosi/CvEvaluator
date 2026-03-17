@@ -1,30 +1,43 @@
-<nav class="bg-gray-900 text-white px-6 py-3 flex items-center justify-between shadow">
+<nav class="bg-surface-900 border-b border-border px-6 py-3 flex items-center justify-between">
 
-  <div class="font-bold text-lg">
-    <a routerLink="/dashboard" class="hover:text-blue-400 transition-colors">CvEvaluator</a>
-  </div>
+  <a routerLink="/dashboard"
+     class="font-heading font-bold text-lg text-zinc-100 hover:text-accent transition-colors tracking-tight">
+    Cv<span class="text-accent">Evaluator</span>
+  </a>
 
-  <div class="flex items-center gap-6 text-sm">
+  <div class="flex items-center gap-1 sm:gap-2">
 
-    <a routerLink="/job-positions" routerLinkActive="text-blue-400"
-       class="hover:text-blue-300 transition-colors">
+    <a routerLink="/dashboard" routerLinkActive="text-zinc-100 bg-surface-700"
+       [routerLinkActiveOptions]="{exact: true}"
+       class="btn-ghost text-sm hidden sm:inline-flex">
+      Dashboard
+    </a>
+
+    <a routerLink="/job-positions" routerLinkActive="text-zinc-100 bg-surface-700"
+       class="btn-ghost text-sm">
       Job Positions
     </a>
 
-    <a routerLink="/subscription" routerLinkActive="text-blue-400"
-       class="hover:text-blue-300 transition-colors">
+    <a routerLink="/subscription" routerLinkActive="text-zinc-100 bg-surface-700"
+       class="btn-ghost text-sm hidden sm:inline-flex">
       My Plan
     </a>
 
     <a routerLink="/job-positions/create"
-       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg transition-colors">
+       class="btn-primary text-sm !py-1.5 !px-4 ml-1">
       + Create
     </a>
 
-    <span class="text-gray-400 text-xs hidden md:block">{{ email }}</span>
+    <div class="hidden md:flex items-center gap-3 ml-3 pl-3 border-l border-border">
+      <span class="text-muted text-xs">{{ email }}</span>
+      <button (click)="logout()"
+              class="text-muted hover:text-rose-400 transition-colors text-sm">
+        Logout
+      </button>
+    </div>
 
     <button (click)="logout()"
-            class="text-gray-300 hover:text-red-400 transition-colors text-sm">
+            class="md:hidden btn-ghost text-sm !text-muted hover:!text-rose-400">
       Logout
     </button>
 

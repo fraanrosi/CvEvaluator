@@ -8,6 +8,7 @@ using CvEvaluator.Infrastructure.Llm;
 using CvEvaluator.Infrastructure.Parsing;
 using CvEvaluator.Infrastructure.Persistence;
 using CvEvaluator.Infrastructure.Persistence.Repositories;
+using CvEvaluator.Infrastructure.Email;
 using CvEvaluator.Infrastructure.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
@@ -80,6 +81,7 @@ builder.Services.AddScoped<IJobPositionRepository, JobPositionRepository>();
 builder.Services.AddScoped<IJobPositionService, JobPositionService>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
 
 // =========================
 // IDENTITY (PRIMERO)
@@ -214,7 +216,7 @@ builder.Services.AddRateLimiter(options =>
             context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 10,
+                PermitLimit = 30,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));

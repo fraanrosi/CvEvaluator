@@ -36,7 +36,7 @@ test.describe('Job Positions flows', () => {
   test('create a job position', async ({ page }) => {
     await login(page);
 
-    await page.locator('nav a[href="/job-positions/create"]').click();
+    await page.locator('a[href="/job-positions/create"]').first().click();
     await expect(page).toHaveURL(/\/job-positions\/create/);
 
     await page.locator('input[formcontrolname="title"]').fill(JOB_TITLE);
@@ -54,31 +54,64 @@ test.describe('Job Positions flows', () => {
   test('view job position detail', async ({ page }) => {
     await login(page);
 
-    await page.locator('nav a:text("Job Positions")').click();
+    await page.locator('a:text("Job Positions")').first().click();
     await expect(page).toHaveURL(/\/job-positions$/);
 
     await page.locator(`text=${JOB_TITLE}`).first().click();
 
     await expect(page.locator('h2').first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('text=Evaluations')).toBeVisible();
+    await expect(page.locator('text=Upload PDF')).toBeVisible();
+  });
+
+  test('empty state shows in job positions list for new user', async ({ page }) => {
+    const freshUser = {
+      email: `pw_empty_${Date.now()}@test.com`,
+      password: 'Test@123456',
+      fullName: 'Empty User',
+    };
+
+    const regResponse = await page.request.post('http://localhost:8080/api/auth/register', {
+      data: freshUser,
+    });
+    expect(regResponse.ok(), `Registration failed: ${regResponse.status()}`).toBeTruthy();
+
+    await page.goto('/login');
+    await page.locator('input[formcontrolname="email"]').fill(freshUser.email);
+    await page.locator('input[formcontrolname="password"]').fill(freshUser.password);
+    await page.locator('button[type="submit"]').click();
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
+
+    await page.locator('a:text("Job Positions")').first().click();
+    await expect(page.locator('text=No job positions yet')).toBeVisible({ timeout: 5_000 });
   });
 
   test('navigate through navbar links', async ({ page }) => {
     await login(page);
 
-    await page.locator('nav a:text("Job Positions")').click();
+    await page.locator('a:text("Job Positions")').first().click();
     await expect(page).toHaveURL(/\/job-positions$/);
 
-    await page.locator('nav a:text("My Plan")').click();
+    await page.locator('a:text("My Plan")').first().click();
     await expect(page).toHaveURL(/\/subscription$/);
 
-    await page.locator('nav a:text("CvEvaluator")').click();
+    await page.locator('a:text("Dashboard")').first().click();
     await expect(page).toHaveURL(/\/dashboard$/);
   });
 
   test('logout redirects to login', async ({ page }) => {
     await login(page);
 
-    await page.locator('nav button:text("Logout")').click();
+    await page.locator('button:text("Logout")').first().click();
     await expect(page).toHaveURL(/\/login/, { timeout: 5_000 });
+  });
+
+  test('dashboard shows stats and action buttons', async ({ page }) => {
+    await login(page);
+
+    await expect(page.locator('h1:text("Dashboard")')).toBeVisible();
+    await expect(page.locator('h3:text("Job Positions")')).toBeVisible();
+    await expect(page.locator('a:text("+ Create Job Position")')).toBeVisible();
+    await expect(page.locator('a:text("View Job Positions")')).toBeVisible();
   });
 });

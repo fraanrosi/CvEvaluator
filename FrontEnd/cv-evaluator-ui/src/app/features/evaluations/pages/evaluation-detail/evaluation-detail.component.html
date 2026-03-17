@@ -3,25 +3,25 @@
 }
 
 @if (evaluation(); as eval) {
-  <div class="max-w-3xl mx-auto px-4 py-8">
+  <div class="page-container max-w-3xl">
 
     <a [routerLink]="['/job-positions', eval.jobPositionId]"
-       class="text-blue-600 hover:underline text-sm mb-4 inline-block">&larr; Back to position</a>
+       class="text-accent hover:text-accent-light text-sm transition-colors mb-4 inline-block">&larr; Back to position</a>
 
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-bold text-gray-800">{{ eval.originalFilename }}</h2>
+      <h2 class="section-title">{{ eval.originalFilename }}</h2>
       @if (isCompleted(eval.status)) {
-        <span class="text-3xl font-bold text-blue-600">{{ eval.overallScore }}</span>
+        <span class="font-heading text-3xl font-bold text-accent">{{ eval.overallScore }}</span>
       } @else if (isProcessing(eval.status)) {
-        <span class="text-sm font-medium px-3 py-1 rounded-full bg-yellow-100 text-yellow-800">Processing</span>
+        <span class="badge-warning">Processing</span>
       } @else {
-        <span class="text-sm font-medium px-3 py-1 rounded-full bg-red-100 text-red-800">Failed</span>
+        <span class="badge-error">Failed</span>
       }
     </div>
 
     @if (eval.errorMessage) {
-      <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-        <p class="text-red-700 text-sm">{{ eval.errorMessage }}</p>
+      <div class="bg-rose-500/10 border border-rose-500/20 rounded-lg p-4 mb-6">
+        <p class="text-rose-400 text-sm">{{ eval.errorMessage }}</p>
       </div>
     }
 
@@ -29,29 +29,29 @@
 
       <!-- Score breakdown -->
       <div class="grid grid-cols-3 gap-4 mb-8">
-        <div class="bg-white shadow rounded-lg p-4 text-center">
-          <p class="text-sm text-gray-500 mb-1">Technical</p>
-          <p class="text-2xl font-bold text-gray-800">{{ eval.technicalScore ?? '-' }}</p>
+        <div class="card p-5 text-center animate-fade-in-up" style="animation-delay: 0.05s">
+          <p class="text-xs text-muted mb-2 uppercase tracking-wider">Technical</p>
+          <p class="font-heading text-2xl font-bold text-zinc-100">{{ eval.technicalScore ?? '-' }}</p>
         </div>
-        <div class="bg-white shadow rounded-lg p-4 text-center">
-          <p class="text-sm text-gray-500 mb-1">Experience</p>
-          <p class="text-2xl font-bold text-gray-800">{{ eval.experienceScore ?? '-' }}</p>
+        <div class="card p-5 text-center animate-fade-in-up" style="animation-delay: 0.1s">
+          <p class="text-xs text-muted mb-2 uppercase tracking-wider">Experience</p>
+          <p class="font-heading text-2xl font-bold text-zinc-100">{{ eval.experienceScore ?? '-' }}</p>
         </div>
-        <div class="bg-white shadow rounded-lg p-4 text-center">
-          <p class="text-sm text-gray-500 mb-1">Education</p>
-          <p class="text-2xl font-bold text-gray-800">{{ eval.educationScore ?? '-' }}</p>
+        <div class="card p-5 text-center animate-fade-in-up" style="animation-delay: 0.15s">
+          <p class="text-xs text-muted mb-2 uppercase tracking-wider">Education</p>
+          <p class="font-heading text-2xl font-bold text-zinc-100">{{ eval.educationScore ?? '-' }}</p>
         </div>
       </div>
 
       <!-- Strengths & Weaknesses -->
-      <div class="grid grid-cols-2 gap-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         @if (eval.strengths && eval.strengths.length > 0) {
-          <div>
-            <h3 class="text-lg font-semibold text-green-700 mb-3">Strengths</h3>
-            <ul class="space-y-2">
+          <div class="card p-5">
+            <h3 class="font-heading text-sm font-semibold text-emerald-400 mb-3 uppercase tracking-wider">Strengths</h3>
+            <ul class="space-y-2.5">
               @for (s of eval.strengths; track s) {
-                <li class="flex items-start gap-2 text-sm text-gray-700">
-                  <span class="text-green-500 mt-0.5">&#10003;</span>
+                <li class="flex items-start gap-2.5 text-sm text-zinc-300">
+                  <span class="text-emerald-400 mt-0.5 shrink-0">&#10003;</span>
                   <span>{{ s }}</span>
                 </li>
               }
@@ -59,12 +59,12 @@
           </div>
         }
         @if (eval.weaknesses && eval.weaknesses.length > 0) {
-          <div>
-            <h3 class="text-lg font-semibold text-red-700 mb-3">Weaknesses</h3>
-            <ul class="space-y-2">
+          <div class="card p-5">
+            <h3 class="font-heading text-sm font-semibold text-rose-400 mb-3 uppercase tracking-wider">Weaknesses</h3>
+            <ul class="space-y-2.5">
               @for (w of eval.weaknesses; track w) {
-                <li class="flex items-start gap-2 text-sm text-gray-700">
-                  <span class="text-red-500 mt-0.5">&#10007;</span>
+                <li class="flex items-start gap-2.5 text-sm text-zinc-300">
+                  <span class="text-rose-400 mt-0.5 shrink-0">&#10007;</span>
                   <span>{{ w }}</span>
                 </li>
               }
@@ -74,26 +74,26 @@
       </div>
 
       <!-- Metadata -->
-      <div class="bg-gray-50 rounded-lg p-4 text-sm text-gray-500 space-y-1">
+      <div class="card p-5 text-sm text-muted space-y-2">
         @if (eval.yearsExperience != null) {
-          <p>Years of experience: <span class="text-gray-700 font-medium">{{ eval.yearsExperience }}</span></p>
+          <p>Years of experience: <span class="text-zinc-300 font-medium">{{ eval.yearsExperience }}</span></p>
         }
         @if (eval.matchesRequirements != null) {
           <p>Matches requirements:
-            <span class="font-medium" [class.text-green-600]="eval.matchesRequirements" [class.text-red-600]="!eval.matchesRequirements">
+            <span class="font-medium" [class.text-emerald-400]="eval.matchesRequirements" [class.text-rose-400]="!eval.matchesRequirements">
               {{ eval.matchesRequirements ? 'Yes' : 'No' }}
             </span>
           </p>
         }
         @if (eval.modelUsed) {
-          <p>Model: <span class="text-gray-700 font-medium">{{ eval.modelUsed }}</span></p>
+          <p>Model: <span class="text-zinc-300 font-medium">{{ eval.modelUsed }}</span></p>
         }
         @if (eval.processingTimeMs != null) {
-          <p>Processing time: <span class="text-gray-700 font-medium">{{ eval.processingTimeMs }}ms</span></p>
+          <p>Processing time: <span class="text-zinc-300 font-medium">{{ eval.processingTimeMs }}ms</span></p>
         }
-        <p>Uploaded: <span class="text-gray-700 font-medium">{{ eval.createdAt | date:'medium' }}</span></p>
+        <p>Uploaded: <span class="text-zinc-300 font-medium">{{ eval.createdAt | date:'medium' }}</span></p>
         @if (eval.evaluatedAt) {
-          <p>Evaluated: <span class="text-gray-700 font-medium">{{ eval.evaluatedAt | date:'medium' }}</span></p>
+          <p>Evaluated: <span class="text-zinc-300 font-medium">{{ eval.evaluatedAt | date:'medium' }}</span></p>
         }
       </div>
     }

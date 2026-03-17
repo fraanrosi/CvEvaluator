@@ -1,6 +1,6 @@
-<div class="max-w-3xl mx-auto px-4 py-12">
+<div class="page-container max-w-3xl">
 
-  <h1 class="text-3xl font-bold text-gray-800 mb-8">My Plan</h1>
+  <h1 class="section-title mb-8">My Plan</h1>
 
   @if (loading()) {
     <app-spinner message="Loading plan..." />
@@ -9,63 +9,61 @@
   @if (subscription(); as sub) {
 
     <!-- Current plan card -->
-    <div class="bg-white shadow rounded-lg p-6 mb-8">
+    <div class="card p-6 mb-8 animate-fade-in-up">
       <div class="flex items-center justify-between mb-6">
         <div>
-          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Current plan</span>
-          <h2 class="text-2xl font-bold text-blue-600 mt-1">{{ sub.planName }}</h2>
+          <span class="text-xs font-semibold uppercase tracking-wider text-muted">Current plan</span>
+          <h2 class="font-heading text-2xl font-bold text-accent mt-1">{{ sub.planName }}</h2>
         </div>
-        <span class="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
-          {{ sub.status }}
-        </span>
+        <span class="badge-success">{{ sub.status }}</span>
       </div>
 
       <!-- Evaluations usage -->
       <div class="mb-5">
-        <div class="flex justify-between text-sm text-gray-600 mb-1">
+        <div class="flex justify-between text-sm text-zinc-400 mb-2">
           <span>Evaluations this month</span>
-          <span class="font-medium">
+          <span class="font-medium text-zinc-200">
             {{ sub.evaluationsUsedThisMonth }} / {{ formatLimit(sub.maxEvaluationsPerMonth) }}
           </span>
         </div>
         @if (sub.maxEvaluationsPerMonth !== -1) {
-          <div class="w-full bg-gray-200 rounded-full h-2">
+          <div class="w-full bg-surface-600 rounded-full h-2">
             <div
-              class="h-2 rounded-full transition-all"
-              [class.bg-blue-500]="evalProgress(sub) < 80"
-              [class.bg-orange-400]="evalProgress(sub) >= 80 && evalProgress(sub) < 100"
-              [class.bg-red-500]="evalProgress(sub) >= 100"
+              class="h-2 rounded-full transition-all duration-500"
+              [class.bg-accent]="evalProgress(sub) < 80"
+              [class.bg-amber-500]="evalProgress(sub) >= 80 && evalProgress(sub) < 100"
+              [class.bg-rose-500]="evalProgress(sub) >= 100"
               [style.width.%]="evalProgress(sub)">
             </div>
           </div>
         } @else {
-          <div class="w-full bg-blue-100 rounded-full h-2">
-            <div class="h-2 rounded-full bg-blue-400 w-full"></div>
+          <div class="w-full bg-surface-600 rounded-full h-2">
+            <div class="h-2 rounded-full bg-accent/60 w-full"></div>
           </div>
         }
       </div>
 
       <!-- Job positions usage -->
       <div>
-        <div class="flex justify-between text-sm text-gray-600 mb-1">
+        <div class="flex justify-between text-sm text-zinc-400 mb-2">
           <span>Job Positions</span>
-          <span class="font-medium">
+          <span class="font-medium text-zinc-200">
             {{ sub.jobPositionsCount }} / {{ formatLimit(sub.maxJobPositions) }}
           </span>
         </div>
         @if (sub.maxJobPositions !== -1) {
-          <div class="w-full bg-gray-200 rounded-full h-2">
+          <div class="w-full bg-surface-600 rounded-full h-2">
             <div
-              class="h-2 rounded-full transition-all"
-              [class.bg-blue-500]="jobProgress(sub) < 80"
-              [class.bg-orange-400]="jobProgress(sub) >= 80 && jobProgress(sub) < 100"
-              [class.bg-red-500]="jobProgress(sub) >= 100"
+              class="h-2 rounded-full transition-all duration-500"
+              [class.bg-accent]="jobProgress(sub) < 80"
+              [class.bg-amber-500]="jobProgress(sub) >= 80 && jobProgress(sub) < 100"
+              [class.bg-rose-500]="jobProgress(sub) >= 100"
               [style.width.%]="jobProgress(sub)">
             </div>
           </div>
         } @else {
-          <div class="w-full bg-blue-100 rounded-full h-2">
-            <div class="h-2 rounded-full bg-blue-400 w-full"></div>
+          <div class="w-full bg-surface-600 rounded-full h-2">
+            <div class="h-2 rounded-full bg-accent/60 w-full"></div>
           </div>
         }
       </div>
@@ -73,34 +71,35 @@
 
     <!-- Plans comparison -->
     @if (plans().length > 0) {
-      <h3 class="text-lg font-semibold text-gray-700 mb-4">All Plans</h3>
+      <h3 class="font-heading text-lg font-semibold text-zinc-200 mb-4">All Plans</h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        @for (plan of plans(); track plan.id) {
+        @for (plan of plans(); track plan.id; let i = $index) {
           <div
-            class="bg-white rounded-lg border-2 p-5 transition-all"
-            [class.border-blue-500]="plan.name === sub.planName"
-            [class.border-gray-200]="plan.name !== sub.planName">
+            class="card p-5 transition-all animate-fade-in-up"
+            [class.border-accent]="plan.name === sub.planName"
+            [class.shadow-glow]="plan.name === sub.planName"
+            [style.animation-delay]="(i * 0.05) + 's'">
 
             @if (plan.name === sub.planName) {
-              <div class="text-xs font-bold text-blue-500 uppercase tracking-wide mb-2">Current</div>
+              <div class="text-xs font-bold text-accent uppercase tracking-wider mb-2">Current</div>
             }
 
-            <h4 class="text-xl font-bold text-gray-800 mb-3">{{ plan.name }}</h4>
+            <h4 class="font-heading text-xl font-bold text-zinc-100 mb-3">{{ plan.name }}</h4>
 
-            <ul class="text-sm text-gray-600 space-y-1">
+            <ul class="text-sm text-zinc-400 space-y-1.5">
               <li>
-                <span class="font-medium">{{ formatLimit(plan.maxEvaluationsPerMonth) }}</span>
+                <span class="font-medium text-zinc-200">{{ formatLimit(plan.maxEvaluationsPerMonth) }}</span>
                 evaluations / month
               </li>
               <li>
-                <span class="font-medium">{{ formatLimit(plan.maxJobPositions) }}</span>
+                <span class="font-medium text-zinc-200">{{ formatLimit(plan.maxJobPositions) }}</span>
                 job positions
               </li>
             </ul>
 
             @if (plan.name !== sub.planName) {
               <button
-                class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 rounded-lg transition-colors"
+                class="mt-4 w-full btn-secondary text-sm"
                 disabled
                 title="Billing coming soon">
                 Upgrade (coming soon)

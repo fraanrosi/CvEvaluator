@@ -1,3 +1,110 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  * {
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sora', sans-serif;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0f0f18;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a2a3a;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3a3a4e;
+  }
+
+  /* Selection */
+  ::selection {
+    background: rgba(232, 162, 62, 0.3);
+    color: #fff;
+  }
+
+  /* Focus ring */
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(232, 162, 62, 0.3);
+    border-color: #e8a23e;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface-800 border border-border rounded-xl shadow-card;
+  }
+
+  .card-hover {
+    @apply card transition-all duration-300 hover:shadow-card-hover hover:border-border-light;
+  }
+
+  .btn-primary {
+    @apply bg-accent text-surface-950 font-semibold py-2.5 px-5 rounded-lg
+           transition-all duration-200 hover:bg-accent-light hover:shadow-glow
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none;
+  }
+
+  .btn-secondary {
+    @apply bg-surface-600 text-zinc-200 font-medium py-2.5 px-5 rounded-lg border border-border
+           transition-all duration-200 hover:bg-surface-500 hover:border-border-light
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply text-muted font-medium py-2 px-4 rounded-lg
+           transition-all duration-200 hover:text-zinc-200 hover:bg-surface-700;
+  }
+
+  .input-field {
+    @apply w-full bg-surface-900 border border-border rounded-lg px-4 py-2.5
+           text-zinc-200 placeholder-muted/50
+           transition-all duration-200;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-zinc-400 mb-1.5;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-success {
+    @apply badge bg-emerald-500/15 text-emerald-400 border border-emerald-500/20;
+  }
+
+  .badge-error {
+    @apply badge bg-rose-500/15 text-rose-400 border border-rose-500/20;
+  }
+
+  .badge-warning {
+    @apply badge bg-amber-500/15 text-amber-400 border border-amber-500/20;
+  }
+
+  .badge-info {
+    @apply badge bg-sky-500/15 text-sky-400 border border-sky-500/20;
+  }
+
+  .section-title {
+    @apply font-heading text-2xl font-semibold text-zinc-100;
+  }
+
+  .page-container {
+    @apply max-w-5xl mx-auto px-4 sm:px-6 py-8 animate-fade-in;
+  }
+
+  .divider {
+    @apply border-t border-border;
+  }
+}
