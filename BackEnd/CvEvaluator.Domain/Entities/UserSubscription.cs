@@ -11,4 +11,7 @@ public class UserSubscription
     public SubscriptionStatus Status { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+    public string? MpPayerId { get; set; }
+    public string? MpSubscriptionId { get; set; }
+    public string? MpPreapprovalId { get; set; }
 }

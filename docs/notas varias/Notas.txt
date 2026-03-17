@@ -1,0 +1,3 @@
+-Agregar un hook para cuando termina un proceso.(puede ser notificación o algo mas)
+-Armar workspace de VS Code.
+-Actualmente estoy usando Spec-Driven Development(SDD) como metodología de trabajo. Es decir primero armo un plan y luego lo ejecuto.

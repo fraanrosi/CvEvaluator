@@ -84,7 +84,8 @@
               <div class="text-xs font-bold text-accent uppercase tracking-wider mb-2">Current</div>
             }
 
-            <h4 class="font-heading text-xl font-bold text-zinc-100 mb-3">{{ plan.name }}</h4>
+            <h4 class="font-heading text-xl font-bold text-zinc-100 mb-1">{{ plan.name }}</h4>
+            <p class="text-accent font-semibold text-lg mb-3">{{ formatPrice(plan) }}</p>
 
             <ul class="text-sm text-zinc-400 space-y-1.5">
               <li>
@@ -97,17 +98,31 @@
               </li>
             </ul>
 
-            @if (plan.name !== sub.planName) {
+            @if (plan.name !== sub.planName && plan.price > 0) {
               <button
-                class="mt-4 w-full btn-secondary text-sm"
-                disabled
-                title="Billing coming soon">
-                Upgrade (coming soon)
+                class="mt-4 w-full btn-primary text-sm"
+                [disabled]="checkoutLoading() !== null"
+                (click)="upgrade(plan.id)">
+                @if (checkoutLoading() === plan.id) {
+                  <span class="inline-flex items-center gap-2">
+                    <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                    </svg>
+                    Redirecting...
+                  </span>
+                } @else {
+                  Upgrade to {{ plan.name }}
+                }
               </button>
             }
           </div>
         }
       </div>
+
+      @if (checkoutError()) {
+        <p class="mt-4 text-sm text-rose-400 text-center">{{ checkoutError() }}</p>
+      }
     }
 
   }

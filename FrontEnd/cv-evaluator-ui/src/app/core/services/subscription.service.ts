@@ -16,4 +16,8 @@ export class SubscriptionService {
   getMySubscription(): Observable<UserSubscription> {
     return this.http.get<UserSubscription>(`${this.base}/my-subscription`);
   }
+
+  createCheckout(planId: string): Observable<{ initPoint: string }> {
+    return this.http.post<{ initPoint: string }>(`${this.base}/create-checkout`, { planId });
+  }
 }
