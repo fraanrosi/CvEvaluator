@@ -4,6 +4,15 @@ import { AppShellComponent } from './shared/layout/app-shell/app-shell.component
 
 export const routes: Routes = [
 
+  // landing — public
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./features/landing/landing.component')
+        .then(m => m.LandingComponent)
+  },
+
   // public routes — no navbar
   {
     path: 'login',
@@ -42,13 +51,6 @@ export const routes: Routes = [
     component: AppShellComponent,
     canActivate: [authGuard],
     children: [
-
-      // default redirect inside shell
-      {
-        path: '',
-        redirectTo: 'dashboard',
-        pathMatch: 'full'
-      },
 
       {
         path: 'dashboard',
