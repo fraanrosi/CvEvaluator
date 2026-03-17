@@ -33,6 +33,23 @@ export class AuthService {
       fullName
     });
   }
+
+  confirmEmail(email: string, token: string) {
+    return this.http.post(`${environment.apiBaseUrl}/auth/confirm-email`, { email, token });
+  }
+
+  forgotPassword(email: string) {
+    return this.http.post(`${environment.apiBaseUrl}/auth/forgot-password`, { email });
+  }
+
+  resetPassword(email: string, token: string, newPassword: string) {
+    return this.http.post(`${environment.apiBaseUrl}/auth/reset-password`, { email, token, newPassword });
+  }
+
+  resendConfirmation(email: string) {
+    return this.http.post(`${environment.apiBaseUrl}/auth/resend-confirmation`, { email });
+  }
+
   getToken(): string | null {
     return this.session.getToken();
   }

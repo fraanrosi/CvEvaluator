@@ -1,9 +1,8 @@
-<div class="max-w-5xl mx-auto px-4 py-8">
+<div class="page-container">
 
   <div class="flex items-center justify-between mb-6">
-    <h2 class="text-2xl font-bold text-gray-800">Job Positions</h2>
-    <button (click)="create()"
-            class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+    <h2 class="section-title">Job Positions</h2>
+    <button (click)="create()" class="btn-primary text-sm">
       + Create
     </button>
   </div>
@@ -13,19 +12,30 @@
   }
 
   @if (!loading() && jobPositions().length === 0) {
-    <div class="text-center py-12 text-gray-400 border border-dashed rounded-lg">
-      No job positions yet.
+    <div class="text-center py-16 text-muted border border-dashed border-border rounded-xl">
+      <svg class="w-12 h-12 text-surface-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+      </svg>
+      <p class="text-sm">No job positions yet.</p>
+      <button (click)="create()" class="btn-primary text-sm mt-4">
+        Create your first position
+      </button>
     </div>
   }
 
   @if (!loading() && jobPositions().length > 0) {
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      @for (job of jobPositions(); track job.id) {
-        <div class="bg-white shadow rounded-lg p-5 cursor-pointer hover:shadow-md transition-shadow"
+      @for (job of jobPositions(); track job.id; let i = $index) {
+        <div class="card-hover p-5 cursor-pointer animate-fade-in-up"
+             [style.animation-delay]="(i * 0.05) + 's'"
              (click)="open(job)">
-          <h3 class="font-semibold text-gray-800 mb-2">{{ job.title }}</h3>
-          <p class="text-sm text-gray-400 mb-1">Created: {{ job.createdAt | date:'mediumDate' }}</p>
-          <p class="text-sm text-gray-500">{{ job.evaluationsCount ?? 0 }} evaluations</p>
+          <h3 class="font-heading font-semibold text-zinc-100 mb-2">{{ job.title }}</h3>
+          <p class="text-xs text-muted mb-1">{{ job.createdAt | date:'mediumDate' }}</p>
+          <div class="flex items-center gap-1.5 mt-3">
+            <span class="badge bg-surface-600 text-zinc-300 border-border">
+              {{ job.evaluationsCount ?? 0 }} evaluations
+            </span>
+          </div>
         </div>
       }
     </div>

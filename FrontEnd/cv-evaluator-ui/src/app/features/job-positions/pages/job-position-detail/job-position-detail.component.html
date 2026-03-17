@@ -3,27 +3,27 @@
 }
 
 @if (job()) {
-  <div class="max-w-3xl mx-auto px-4 py-8">
+  <div class="page-container max-w-3xl">
 
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-bold text-gray-800">{{ job()!.title }}</h2>
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="section-title">{{ job()!.title }}</h2>
       <a [routerLink]="['/job-positions', job()!.id, 'edit']"
-         class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium px-4 py-2 rounded-lg">
+         class="btn-secondary text-sm">
         Edit
       </a>
     </div>
 
-    <p class="text-gray-600 mb-2">{{ job()!.description }}</p>
-    <p class="text-sm text-gray-400 mb-8">Created: {{ job()!.createdAt | date:'mediumDate' }}</p>
+    <p class="text-zinc-400 text-sm mb-1">{{ job()!.description }}</p>
+    <p class="text-xs text-muted mb-8">Created {{ job()!.createdAt | date:'mediumDate' }}</p>
 
-    <hr class="mb-8" />
+    <div class="divider mb-8"></div>
 
     <div class="flex items-center justify-between mb-4">
-      <h3 class="text-xl font-semibold text-gray-700">Evaluations</h3>
+      <h3 class="font-heading text-lg font-semibold text-zinc-200">Evaluations</h3>
 
       <label class="cursor-pointer">
-        <span class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
-              [class.opacity-50]="uploading()"
+        <span class="btn-primary text-sm"
+              [class.opacity-40]="uploading()"
               [class.pointer-events-none]="uploading()">
           {{ uploading() ? 'Uploading...' : 'Upload PDF' }}
         </span>
@@ -38,32 +38,31 @@
     </div>
 
     @if (uploadError()) {
-      <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-4">
+      <div class="bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-lg px-4 py-3 text-sm mb-4">
         <span class="font-semibold">Limit reached:</span> {{ uploadError() }}
-        <a routerLink="/subscription" class="ml-2 underline font-medium hover:text-red-900">View plans →</a>
+        <a routerLink="/subscription" class="ml-2 underline font-medium text-accent hover:text-accent-light">View plans →</a>
       </div>
     }
 
     @if (job()!.evaluations.length === 0) {
-      <div class="text-gray-400 text-sm py-6 text-center border border-dashed rounded-lg">
+      <div class="text-muted text-sm py-10 text-center border border-dashed border-border rounded-xl">
         No evaluations yet. Upload a PDF to get started.
       </div>
     }
 
     <div class="space-y-3">
-      @for (eval of job()!.evaluations; track eval.id) {
+      @for (eval of job()!.evaluations; track eval.id; let i = $index) {
         <a [routerLink]="['/evaluations', eval.id]"
-           class="bg-white shadow rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer block">
+           class="card-hover p-4 flex items-center justify-between cursor-pointer block animate-fade-in-up"
+           [style.animation-delay]="(i * 0.05) + 's'">
           <div>
-            <p class="font-medium text-gray-800">{{ eval.fileName }}</p>
-            <p class="text-sm text-gray-400">{{ eval.evaluatedAt | date:'short' }}</p>
+            <p class="font-medium text-zinc-200">{{ eval.fileName }}</p>
+            <p class="text-xs text-muted mt-0.5">{{ eval.evaluatedAt | date:'short' }}</p>
           </div>
           @if (eval.score != null) {
-            <span class="text-lg font-bold text-blue-600">{{ eval.score }}</span>
+            <span class="font-heading text-lg font-bold text-accent">{{ eval.score }}</span>
           } @else {
-            <span class="text-xs font-medium px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
-              Processing
-            </span>
+            <span class="badge-warning">Processing</span>
           }
         </a>
       }
