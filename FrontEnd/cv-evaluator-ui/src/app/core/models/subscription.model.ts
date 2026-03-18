@@ -3,6 +3,8 @@ export interface Plan {
   name: string;
   maxEvaluationsPerMonth: number;
   maxJobPositions: number;
+  price: number;
+  currency: string;
 }
 
 export interface UserSubscription {

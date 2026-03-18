@@ -112,6 +112,28 @@ export const routes: Routes = [
             .then(m => m.SubscriptionPageComponent)
       },
 
+      {
+        path: 'subscription/success',
+        loadComponent: () =>
+          import('./features/subscription/payment-result/payment-result.component')
+            .then(m => m.PaymentResultComponent),
+        data: { status: 'success' }
+      },
+      {
+        path: 'subscription/failure',
+        loadComponent: () =>
+          import('./features/subscription/payment-result/payment-result.component')
+            .then(m => m.PaymentResultComponent),
+        data: { status: 'failure' }
+      },
+      {
+        path: 'subscription/pending',
+        loadComponent: () =>
+          import('./features/subscription/payment-result/payment-result.component')
+            .then(m => m.PaymentResultComponent),
+        data: { status: 'pending' }
+      },
+
     ]
   },
 

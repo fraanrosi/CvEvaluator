@@ -73,10 +73,13 @@ public class CvEvaluatorDbContext
                 .IsRequired()
                 .HasMaxLength(50);
 
+            entity.Property(p => p.Price).HasColumnType("decimal(10,2)");
+            entity.Property(p => p.Currency).HasMaxLength(10).HasDefaultValue("ARS");
+
             entity.HasData(
-                new Plan { Id = FreePlanId,     Name = "Free",     MaxEvaluationsPerMonth = 5,  MaxJobPositions = 2  },
-                new Plan { Id = ProPlanId,      Name = "Pro",      MaxEvaluationsPerMonth = 50, MaxJobPositions = 20 },
-                new Plan { Id = BusinessPlanId, Name = "Business", MaxEvaluationsPerMonth = -1, MaxJobPositions = -1 }
+                new Plan { Id = FreePlanId,     Name = "Free",     MaxEvaluationsPerMonth = 5,  MaxJobPositions = 2,  Price = 0,     Currency = "ARS" },
+                new Plan { Id = ProPlanId,      Name = "Pro",      MaxEvaluationsPerMonth = 50, MaxJobPositions = 20, Price = 9999,  Currency = "ARS" },
+                new Plan { Id = BusinessPlanId, Name = "Business", MaxEvaluationsPerMonth = -1, MaxJobPositions = -1, Price = 24999, Currency = "ARS" }
             );
         });
     }
@@ -90,6 +93,10 @@ public class CvEvaluatorDbContext
             entity.Property(s => s.Status)
                 .HasConversion<string>()
                 .IsRequired();
+
+            entity.Property(s => s.MpPayerId).HasMaxLength(100);
+            entity.Property(s => s.MpSubscriptionId).HasMaxLength(100);
+            entity.Property(s => s.MpPreapprovalId).HasMaxLength(100);
 
             entity.HasIndex(s => s.UserId);
 

@@ -32,15 +32,15 @@
 
   /* Selection */
   ::selection {
-    background: rgba(232, 162, 62, 0.3);
+    background: rgba(124, 58, 237, 0.3);
     color: #fff;
   }
 
   /* Focus ring */
   input:focus, textarea:focus, select:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(232, 162, 62, 0.3);
-    border-color: #e8a23e;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.3);
+    border-color: #7C3AED;
   }
 }
 
@@ -54,7 +54,7 @@
   }
 
   .btn-primary {
-    @apply bg-accent text-surface-950 font-semibold py-2.5 px-5 rounded-lg
+    @apply bg-accent text-white font-semibold py-2.5 px-5 rounded-lg
            transition-all duration-200 hover:bg-accent-light hover:shadow-glow
            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none;
   }
@@ -111,4 +111,54 @@
   .divider {
     @apply border-t border-border;
   }
+
+  /* Sidebar */
+  .sidebar-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted text-sm
+           transition-all duration-200 hover:bg-surface-700 hover:text-zinc-200;
+  }
+
+  .sidebar-link-active {
+    @apply bg-accent/10 text-accent;
+  }
+
+  /* Dashboard widgets */
+  .stat-card {
+    @apply card p-5 flex flex-col gap-2;
+  }
+
+  .chart-container {
+    @apply card p-6 min-h-[300px];
+  }
+}
+
+/* ─── Print / PDF export ──────────────────────────────── */
+@media print {
+  /* Hide chrome */
+  app-sidebar,
+  app-top-header,
+  .print\:hidden { display: none !important; }
+
+  /* Reset layout — no sidebar offset */
+  body, html { background: #fff !important; color: #111 !important; }
+  .page-container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+  main { padding: 1rem !important; margin-left: 0 !important; }
+
+  /* Flatten dark cards */
+  .card {
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  /* Readable text on white */
+  .text-zinc-100, .text-zinc-200, .text-zinc-300, .text-zinc-400 { color: #374151 !important; }
+  .text-muted { color: #6b7280 !important; }
+  .text-accent { color: #6d28d9 !important; }
+  .text-emerald-400 { color: #059669 !important; }
+  .text-rose-400 { color: #dc2626 !important; }
+
+  /* Bars / progress */
+  .bg-accent { background-color: #6d28d9 !important; }
 }

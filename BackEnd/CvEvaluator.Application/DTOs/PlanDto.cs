@@ -6,4 +6,6 @@ public class PlanDto
     public string Name { get; set; } = string.Empty;
     public int MaxEvaluationsPerMonth { get; set; }
     public int MaxJobPositions { get; set; }
+    public decimal Price { get; set; }
+    public string Currency { get; set; } = "ARS";
 }

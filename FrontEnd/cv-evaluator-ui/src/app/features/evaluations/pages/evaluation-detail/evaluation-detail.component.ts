@@ -36,4 +36,8 @@ export class EvaluationDetailComponent implements OnInit {
       error: () => this.loading.set(false)
     });
   }
+
+  exportPdf(): void {
+    window.print();
+  }
 }

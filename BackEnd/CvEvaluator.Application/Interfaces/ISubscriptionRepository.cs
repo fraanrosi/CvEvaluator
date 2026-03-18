@@ -11,4 +11,7 @@ public interface ISubscriptionRepository
     Task<MonthlyUsageCounter?> GetCounterAsync(Guid userId, int year, int month, CancellationToken ct);
     Task AddCounterAsync(MonthlyUsageCounter counter, CancellationToken ct);
     void UpdateCounter(MonthlyUsageCounter counter);
+    Task<Plan?> GetPlanByIdAsync(Guid planId, CancellationToken ct);
+    Task<UserSubscription?> GetByMpSubscriptionIdAsync(string mpSubscriptionId, CancellationToken ct);
+    void UpdateSubscription(UserSubscription subscription);
 }

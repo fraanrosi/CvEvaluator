@@ -1,16 +1,23 @@
-import { Component } from '@angular/core';
+import { Component, viewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { NavbarComponent } from '../navbar/navbar.component';
+import { SidebarComponent } from '../sidebar/sidebar.component';
+import { TopHeaderComponent } from '../top-header/top-header.component';
+
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent],
+  imports: [RouterOutlet, SidebarComponent, TopHeaderComponent],
   template: `
-    <app-navbar></app-navbar>
-
-    <main class="min-h-screen bg-surface-950">
-      <router-outlet></router-outlet>
-    </main>
+    <app-sidebar />
+    <div [class]="'transition-all duration-300 min-h-screen bg-surface-950 '
+      + (sidebar()?.collapsed() ? 'lg:ml-16' : 'lg:ml-64')">
+      <app-top-header (toggleSidebar)="sidebar()?.openMobile()" />
+      <main class="p-6">
+        <router-outlet />
+      </main>
+    </div>
   `
 })
-export class AppShellComponent {}
+export class AppShellComponent {
+  sidebar = viewChild(SidebarComponent);
+}

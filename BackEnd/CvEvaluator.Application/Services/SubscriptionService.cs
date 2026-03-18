@@ -30,7 +30,9 @@ public class SubscriptionService : ISubscriptionService
             Id = p.Id,
             Name = p.Name,
             MaxEvaluationsPerMonth = p.MaxEvaluationsPerMonth,
-            MaxJobPositions = p.MaxJobPositions
+            MaxJobPositions = p.MaxJobPositions,
+            Price = p.Price,
+            Currency = p.Currency
         });
     }
 
