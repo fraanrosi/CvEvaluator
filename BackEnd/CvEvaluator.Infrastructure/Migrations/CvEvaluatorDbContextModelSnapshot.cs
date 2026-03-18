@@ -171,6 +171,13 @@ namespace CvEvaluator.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("ARS");
+
                     b.Property<int>("MaxEvaluationsPerMonth")
                         .HasColumnType("integer");
 
@@ -182,6 +189,9 @@ namespace CvEvaluator.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(10,2)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Plans");
@@ -190,23 +200,29 @@ namespace CvEvaluator.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Currency = "ARS",
                             MaxEvaluationsPerMonth = 5,
                             MaxJobPositions = 2,
-                            Name = "Free"
+                            Name = "Free",
+                            Price = 0m
                         },
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000002"),
+                            Currency = "ARS",
                             MaxEvaluationsPerMonth = 50,
                             MaxJobPositions = 20,
-                            Name = "Pro"
+                            Name = "Pro",
+                            Price = 9999m
                         },
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000003"),
+                            Currency = "ARS",
                             MaxEvaluationsPerMonth = -1,
                             MaxJobPositions = -1,
-                            Name = "Business"
+                            Name = "Business",
+                            Price = 24999m
                         });
                 });
 
@@ -218,6 +234,18 @@ namespace CvEvaluator.Infrastructure.Migrations
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("MpPayerId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("MpPreapprovalId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("MpSubscriptionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<Guid>("PlanId")
                         .HasColumnType("uuid");

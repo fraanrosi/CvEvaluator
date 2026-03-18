@@ -9,6 +9,7 @@ using CvEvaluator.Infrastructure.Parsing;
 using CvEvaluator.Infrastructure.Persistence;
 using CvEvaluator.Infrastructure.Persistence.Repositories;
 using CvEvaluator.Infrastructure.Email;
+using CvEvaluator.Infrastructure.Payments;
 using CvEvaluator.Infrastructure.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
@@ -81,6 +82,9 @@ builder.Services.AddScoped<IJobPositionRepository, JobPositionRepository>();
 builder.Services.AddScoped<IJobPositionService, JobPositionService>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IPaymentService, MercadoPagoPaymentService>();
 builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
 
 // =========================
@@ -221,6 +225,11 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 });
+
+// MercadoPago SDK
+var mpAccessToken = builder.Configuration["MercadoPago:AccessToken"];
+if (!string.IsNullOrEmpty(mpAccessToken))
+    MercadoPago.Config.MercadoPagoConfig.AccessToken = mpAccessToken;
 
 var app = builder.Build();
 

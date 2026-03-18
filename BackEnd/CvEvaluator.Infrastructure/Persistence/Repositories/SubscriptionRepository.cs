@@ -36,4 +36,15 @@ public class SubscriptionRepository : ISubscriptionRepository
 
     public void UpdateCounter(MonthlyUsageCounter counter)
         => _context.MonthlyUsageCounters.Update(counter);
+
+    public async Task<Plan?> GetPlanByIdAsync(Guid planId, CancellationToken ct)
+        => await _context.Plans.FirstOrDefaultAsync(p => p.Id == planId, ct);
+
+    public async Task<UserSubscription?> GetByMpSubscriptionIdAsync(string mpSubscriptionId, CancellationToken ct)
+        => await _context.UserSubscriptions
+            .Include(s => s.Plan)
+            .FirstOrDefaultAsync(s => s.MpSubscriptionId == mpSubscriptionId, ct);
+
+    public void UpdateSubscription(UserSubscription subscription)
+        => _context.UserSubscriptions.Update(subscription);
 }

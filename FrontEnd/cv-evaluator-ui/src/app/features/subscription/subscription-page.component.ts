@@ -16,6 +16,8 @@ export class SubscriptionPageComponent implements OnInit {
   subscription = signal<UserSubscription | null>(null);
   plans = signal<Plan[]>([]);
   loading = signal(true);
+  checkoutLoading = signal<string | null>(null);
+  checkoutError = signal<string | null>(null);
 
   ngOnInit(): void {
     this.subscriptionService.getMySubscription().subscribe({
@@ -31,6 +33,20 @@ export class SubscriptionPageComponent implements OnInit {
     });
   }
 
+  upgrade(planId: string): void {
+    this.checkoutError.set(null);
+    this.checkoutLoading.set(planId);
+    this.subscriptionService.createCheckout(planId).subscribe({
+      next: ({ initPoint }) => {
+        window.location.href = initPoint;
+      },
+      error: () => {
+        this.checkoutLoading.set(null);
+        this.checkoutError.set('Could not start checkout. Please try again.');
+      }
+    });
+  }
+
   evalProgress(sub: UserSubscription): number {
     if (sub.maxEvaluationsPerMonth === -1) return 100;
     return Math.min((sub.evaluationsUsedThisMonth / sub.maxEvaluationsPerMonth) * 100, 100);
@@ -43,5 +59,10 @@ export class SubscriptionPageComponent implements OnInit {
 
   formatLimit(value: number): string {
     return value === -1 ? 'Unlimited' : value.toString();
+  }
+
+  formatPrice(plan: Plan): string {
+    if (plan.price === 0) return 'Free';
+    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: plan.currency ?? 'ARS', maximumFractionDigits: 0 }).format(plan.price) + '/mo';
   }
 }

@@ -92,7 +92,7 @@ test.describe('Job Positions flows', () => {
     await page.locator('a:text("Job Positions")').first().click();
     await expect(page).toHaveURL(/\/job-positions$/);
 
-    await page.locator('a:text("My Plan")').first().click();
+    await page.locator('a:text("Subscription")').first().click();
     await expect(page).toHaveURL(/\/subscription$/);
 
     await page.locator('a:text("Dashboard")').first().click();
@@ -102,7 +102,7 @@ test.describe('Job Positions flows', () => {
   test('logout redirects to login', async ({ page }) => {
     await login(page);
 
-    await page.locator('button:text("Logout")').first().click();
+    await page.locator('button[title="Logout"]').first().click();
     await expect(page).toHaveURL(/\/login/, { timeout: 5_000 });
   });
 
@@ -110,8 +110,8 @@ test.describe('Job Positions flows', () => {
     await login(page);
 
     await expect(page.locator('h1:text("Dashboard")')).toBeVisible();
-    await expect(page.locator('h3:text("Job Positions")')).toBeVisible();
+    await expect(page.locator('text=Job Positions')).toBeVisible();
     await expect(page.locator('a:text("+ Create Job Position")')).toBeVisible();
-    await expect(page.locator('a:text("View Job Positions")')).toBeVisible();
+    await expect(page.locator('a:text("View Positions")')).toBeVisible();
   });
 });

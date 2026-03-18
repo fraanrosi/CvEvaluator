@@ -20,7 +20,7 @@ test.describe('Landing page', () => {
   test('has CTA button linking to register', async ({ page }) => {
     await page.goto('/');
 
-    const cta = page.locator('a[href="/register"]:text("Start evaluating for free")');
+    const cta = page.locator('a[href="/register"]').filter({ hasText: 'Get started' }).first();
     await expect(cta).toBeVisible();
   });
 
@@ -30,17 +30,19 @@ test.describe('Landing page', () => {
     await expect(page.locator('#features')).toBeVisible();
     await expect(page.locator('text=Everything you need to hire better')).toBeVisible();
 
-    const cards = page.locator('.card-hover');
+    const cards = page.locator('#features .grid > div');
     await expect(cards).toHaveCount(4);
   });
 
   test('renders how it works section with three steps', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.locator('text=Three simple steps')).toBeVisible();
-    await expect(page.locator('text=Define your position')).toBeVisible();
-    await expect(page.locator('text=Upload CVs')).toBeVisible();
-    await expect(page.locator('text=Get AI evaluations')).toBeVisible();
+    const howItWorks = page.locator('#how-it-works');
+    await expect(howItWorks).toBeVisible();
+    await expect(howItWorks).toContainText('Three simple steps');
+    await expect(howItWorks).toContainText('Define your position');
+    await expect(howItWorks).toContainText('Upload CVs');
+    await expect(howItWorks).toContainText('Get AI evaluations');
   });
 
   test('renders CTA section', async ({ page }) => {
@@ -83,7 +85,7 @@ test.describe('Landing page', () => {
   test('has background decoration blurs', async ({ page }) => {
     await page.goto('/');
 
-    const blurOrbs = page.locator('.blur-3xl');
+    const blurOrbs = page.locator('.animate-pulse-glow');
     await expect(blurOrbs.first()).toBeVisible();
   });
 });
