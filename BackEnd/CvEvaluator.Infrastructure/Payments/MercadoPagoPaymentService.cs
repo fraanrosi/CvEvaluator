@@ -56,7 +56,7 @@ public class MercadoPagoPaymentService : IPaymentService
                 Failure = _config["MercadoPago:FailureUrl"] ?? "http://localhost:4200/subscription/failure",
                 Pending = _config["MercadoPago:PendingUrl"] ?? "http://localhost:4200/subscription/pending",
             },
-            AutoReturn = "approved",
+            AutoReturn = string.IsNullOrEmpty(_config["MercadoPago:SuccessUrl"]) || _config["MercadoPago:SuccessUrl"]!.Contains("localhost") ? null : "approved",
             ExternalReference = $"{userId}|{planId}",
             NotificationUrl = _config["MercadoPago:WebhookUrl"],
         };
