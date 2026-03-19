@@ -1,3 +1,4 @@
+using CvEvaluator.Api.Helpers;
 using CvEvaluator.Application.DTOs;
 using CvEvaluator.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -15,13 +16,19 @@ public class SubscriptionsController : ControllerBase
 {
     private readonly ISubscriptionService _subscriptionService;
     private readonly IPaymentService _paymentService;
+    private readonly IConfiguration _config;
+    private readonly ILogger<SubscriptionsController> _logger;
 
     public SubscriptionsController(
         ISubscriptionService subscriptionService,
-        IPaymentService paymentService)
+        IPaymentService paymentService,
+        IConfiguration config,
+        ILogger<SubscriptionsController> logger)
     {
         _subscriptionService = subscriptionService;
         _paymentService = paymentService;
+        _config = config;
+        _logger = logger;
     }
 
     private Guid GetUserId() =>
@@ -58,10 +65,17 @@ public class SubscriptionsController : ControllerBase
         [FromQuery] long? id,
         CancellationToken ct)
     {
-        if (topic != null && id != null)
+        Request.EnableBuffering();
+
+        if (!await MercadoPagoSignatureValidator.IsValidAsync(Request, _config["MercadoPago:WebhookSecret"]))
         {
-            await _paymentService.HandlePaymentNotificationAsync(topic, id.Value, ct);
+            _logger.LogWarning("MercadoPago webhook: invalid signature, ignoring");
+            return Ok(); // 200 para evitar retries de MP
         }
+
+        if (topic != null && id != null)
+            await _paymentService.HandlePaymentNotificationAsync(topic, id.Value, ct);
+
         return Ok();
     }
 }
