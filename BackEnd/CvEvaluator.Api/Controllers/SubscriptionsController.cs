@@ -67,7 +67,7 @@ public class SubscriptionsController : ControllerBase
     {
         Request.EnableBuffering();
 
-        if (!await MercadoPagoSignatureValidator.IsValidAsync(Request, _config["MercadoPago:WebhookSecret"]))
+        if (!await MercadoPagoSignatureValidator.IsValidAsync(Request, _config["MercadoPago:WebhookSecret"], _logger))
         {
             _logger.LogWarning("MercadoPago webhook: invalid signature, ignoring");
             return Ok(); // 200 para evitar retries de MP
