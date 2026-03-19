@@ -297,8 +297,12 @@ app.Use(async (context, next) =>
     context.Response.Headers["Referrer-Policy"] = "no-referrer";
     context.Response.Headers["X-Permitted-Cross-Domain-Policies"] = "none";
     context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+
+    var isSwagger = context.Request.Path.StartsWithSegments("/swagger");
+    var scriptSrc = isSwagger ? "'self' 'unsafe-inline'" : "'self'";
     context.Response.Headers["Content-Security-Policy"] =
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'";
+        $"default-src 'self'; script-src {scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'";
+
     await next();
 });
 
@@ -347,5 +351,8 @@ app.MapGet("/health", () => Results.Ok(new
 // RUN
 // =========================
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Run($"http://0.0.0.0:{port}");
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+    app.Run($"http://0.0.0.0:{port}");
+else
+    app.Run();
