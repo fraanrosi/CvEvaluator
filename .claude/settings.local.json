@@ -1,7 +1,23 @@
 {
   "permissions": {
     "allow": [
-      "Bash(*)"
+      "Bash(*)",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let data=''; process.stdin.on('data',d=>data+=d); process.stdin.on('end',()=>{ const input=JSON.parse(data); const f=input.tool_input.file_path; if(!f) return; if(/\\.(ts|html|css|scss)$/.test(f)){ require('child_process').execSync('npx prettier --write \\\"'+f+'\\\" --log-level silent',{stdio:'inherit'}); } else if(/\\.cs$/.test(f)){ require('child_process').execSync('dotnet format \\\"c:/Users/fran_/source/repos/CvEvaluator/BackEnd\\\" --include \\\"'+f+'\\\" --verbosity quiet',{stdio:'inherit'}); } });\"",
+            "statusMessage": "Formatting..."
+          }
+        ]
+      }
     ]
   }
 }
