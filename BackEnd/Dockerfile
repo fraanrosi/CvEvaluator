@@ -27,15 +27,19 @@ RUN apt-get update && \
         curl \
     && rm -rf /var/lib/apt/lists/*
 
+# ---- Non-root user ----
+RUN groupadd -r appuser && useradd -r -g appuser -s /sbin/nologin appuser
+
 # ---- App ----
 WORKDIR /app
 COPY --from=build /app/publish .
+RUN chown -R appuser:appuser /app
+
+USER appuser
 
 # ---- Environment ----
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
-# NOTA: las variables de entorno (LlmProvider, Groq__ApiKey, ConnectionStrings, etc.)
-# se configuran en Fly.io via `fly secrets set` o en docker-compose para dev local
 
 EXPOSE 8080
 
