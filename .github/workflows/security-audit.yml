@@ -1,0 +1,53 @@
+name: Weekly Security Audit
+
+on:
+  schedule:
+    - cron: "0 12 * * 1" # Lunes 9:00 AM ART (UTC-3)
+  workflow_dispatch: # Permite ejecutar manualmente
+
+jobs:
+  npm-audit:
+    name: npm dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+        working-directory: FrontEnd/cv-evaluator-ui
+
+      - name: Run npm audit
+        run: |
+          echo "## npm audit results" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npm audit --legacy-peer-deps 2>&1 | tee audit-output.txt >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        working-directory: FrontEnd/cv-evaluator-ui
+
+      - name: Fail on high severity
+        run: npm audit --legacy-peer-deps --audit-level=critical
+        working-directory: FrontEnd/cv-evaluator-ui
+
+  dotnet-audit:
+    name: .NET dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore packages
+        run: dotnet restore BackEnd/CvEvaluator.Api/CvEvaluator.Api.csproj
+
+      - name: Check vulnerable packages
+        run: |
+          echo "## .NET audit results" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          dotnet list BackEnd/CvEvaluator.Api/CvEvaluator.Api.csproj package --vulnerable --include-transitive 2>&1 | tee -a $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
