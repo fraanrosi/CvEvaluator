@@ -6,9 +6,18 @@ namespace CvEvaluator.Api.Helpers;
 
 public static class MercadoPagoSignatureValidator
 {
-    public static async Task<bool> IsValidAsync(HttpRequest request, string? secret, ILogger? logger = null)
+    public static async Task<bool> IsValidAsync(HttpRequest request, string? secret, ILogger? logger = null, bool isDevelopment = false)
     {
-        if (string.IsNullOrEmpty(secret)) return true; // bypass en local dev
+        if (string.IsNullOrEmpty(secret))
+        {
+            if (isDevelopment)
+            {
+                logger?.LogWarning("Webhook signature validation BYPASSED (Development mode, no secret configured)");
+                return true;
+            }
+            logger?.LogError("Webhook secret not configured in non-Development environment! Rejecting.");
+            return false;
+        }
 
         var xSignature = request.Headers["x-signature"].FirstOrDefault();
         var xRequestId = request.Headers["x-request-id"].FirstOrDefault();

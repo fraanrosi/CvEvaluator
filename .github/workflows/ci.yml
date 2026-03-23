@@ -5,6 +5,20 @@ on:
     branches: [develop, master]
 
 jobs:
+  security-scan:
+    name: Scan for secrets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   backend:
     name: Backend build
     runs-on: ubuntu-latest
@@ -21,6 +35,17 @@ jobs:
 
       - name: Build
         run: dotnet build BackEnd/CvEvaluator.Api/CvEvaluator.Api.csproj --no-restore -c Release
+
+  dotnet-audit:
+    name: .NET dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Check vulnerable packages
+        run: dotnet list BackEnd/CvEvaluator.Api/CvEvaluator.Api.csproj package --vulnerable --include-transitive
 
   frontend:
     name: Frontend build
@@ -44,4 +69,16 @@ jobs:
 
       - name: Build (${{ matrix.configuration }})
         run: npm run build -- --configuration ${{ matrix.configuration }}
+        working-directory: FrontEnd/cv-evaluator-ui
+
+  npm-audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Audit production dependencies
+        run: npm audit --production || true
         working-directory: FrontEnd/cv-evaluator-ui
