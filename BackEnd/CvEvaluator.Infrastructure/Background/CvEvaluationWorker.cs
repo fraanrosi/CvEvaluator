@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace CvEvaluator.Infrastructure.Background;
@@ -17,14 +18,18 @@ public class CvEvaluationWorker : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IHubContext<EvaluationHub> _hubContext;
     private readonly EvaluationQueue _queue;
+    private readonly ILogger<CvEvaluationWorker> _logger;
+
     public CvEvaluationWorker(
         IServiceScopeFactory scopeFactory,
         IHubContext<EvaluationHub> hubContext,
-        EvaluationQueue queue)
+        EvaluationQueue queue,
+        ILogger<CvEvaluationWorker> logger)
     {
         _scopeFactory = scopeFactory;
         _hubContext = hubContext;
         _queue = queue;
+        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -104,7 +109,7 @@ public class CvEvaluationWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Worker error: {ex.Message}");
+                _logger.LogError(ex, "Worker error processing evaluation");
             }
         }
     }

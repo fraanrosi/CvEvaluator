@@ -18,17 +18,20 @@ public class SubscriptionsController : ControllerBase
     private readonly IPaymentService _paymentService;
     private readonly IConfiguration _config;
     private readonly ILogger<SubscriptionsController> _logger;
+    private readonly IWebHostEnvironment _env;
 
     public SubscriptionsController(
         ISubscriptionService subscriptionService,
         IPaymentService paymentService,
         IConfiguration config,
-        ILogger<SubscriptionsController> logger)
+        ILogger<SubscriptionsController> logger,
+        IWebHostEnvironment env)
     {
         _subscriptionService = subscriptionService;
         _paymentService = paymentService;
         _config = config;
         _logger = logger;
+        _env = env;
     }
 
     private Guid GetUserId() =>
@@ -67,7 +70,7 @@ public class SubscriptionsController : ControllerBase
     {
         Request.EnableBuffering();
 
-        if (!await MercadoPagoSignatureValidator.IsValidAsync(Request, _config["MercadoPago:WebhookSecret"], _logger))
+        if (!await MercadoPagoSignatureValidator.IsValidAsync(Request, _config["MercadoPago:WebhookSecret"], _logger, _env.IsDevelopment()))
         {
             _logger.LogWarning("MercadoPago webhook: invalid signature, ignoring");
             return Ok(); // 200 para evitar retries de MP

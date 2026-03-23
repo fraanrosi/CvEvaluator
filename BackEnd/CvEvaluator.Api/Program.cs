@@ -96,6 +96,20 @@ builder.Services
     .AddEntityFrameworkStores<CvEvaluatorDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequiredLength = 8;
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredUniqueChars = 2;
+
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+});
+
 // Evita redirects a login (API pura)
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -120,14 +134,10 @@ builder.Services
     {
         options.Events = new JwtBearerEvents
         {
-            OnTokenValidated = context =>
-            {
-                Console.WriteLine("TOKEN VALIDATED");
-                return Task.CompletedTask;
-            },
             OnAuthenticationFailed = context =>
             {
-                Console.WriteLine("AUTH FAILED: " + context.Exception?.Message);
+                var log = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                log.LogDebug("JWT auth failed: {Error}", context.Exception?.Message);
                 return Task.CompletedTask;
             },
             OnMessageReceived = context =>
@@ -188,7 +198,7 @@ builder.Services.AddCors(options =>
                   .AllowAnyMethod()
                   .AllowCredentials();
         }
-        else
+        else if (builder.Environment.IsDevelopment())
         {
             policy.AllowAnyOrigin()
                   .AllowAnyHeader()
@@ -230,6 +240,14 @@ builder.Services.AddRateLimiter(options =>
 var mpAccessToken = builder.Configuration["MercadoPago:AccessToken"];
 if (!string.IsNullOrEmpty(mpAccessToken))
     MercadoPago.Config.MercadoPagoConfig.AccessToken = mpAccessToken;
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50 MB
+});
+
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!);
 
 var app = builder.Build();
 
@@ -324,9 +342,11 @@ app.Use(async (context, next) =>
 // MIDDLEWARE ORDER
 // =========================
 
-app.MapHub<EvaluationHub>("/hubs/evaluations");
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseCors("FrontendPolicy");
 app.UseRateLimiter();
@@ -334,18 +354,15 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHub<EvaluationHub>("/hubs/evaluations");
+
 // =========================
 // ENDPOINTS
 // =========================
 
 app.MapControllers();
 
-app.MapGet("/health", () => Results.Ok(new
-{
-    status = "healthy",
-    environment = app.Environment.EnvironmentName,
-    timestamp = DateTime.UtcNow
-}));
+app.MapHealthChecks("/health");
 
 // =========================
 // RUN

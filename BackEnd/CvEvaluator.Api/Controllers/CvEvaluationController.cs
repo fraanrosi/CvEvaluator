@@ -12,11 +12,14 @@ namespace CvEvaluator.Api.Controllers;
 public class CvEvaluationController : ControllerBase
 {
     private readonly ICvEvaluationService _cvEvaluationService;
+    private readonly ILogger<CvEvaluationController> _logger;
 
     public CvEvaluationController(
-        ICvEvaluationService cvEvaluationService)
+        ICvEvaluationService cvEvaluationService,
+        ILogger<CvEvaluationController> logger)
     {
         _cvEvaluationService = cvEvaluationService;
+        _logger = logger;
     }
 
     [Authorize]
@@ -83,10 +86,11 @@ public class CvEvaluationController : ControllerBase
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error processing file {FileName}", file.FileName);
                 responses.Add(new
                 {
                     fileName = file.FileName,
-                    error = ex.InnerException
+                    error = "An error occurred processing this file."
                 });
             }
         }
