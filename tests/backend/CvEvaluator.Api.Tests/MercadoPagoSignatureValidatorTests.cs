@@ -40,10 +40,10 @@ public class MercadoPagoSignatureValidatorTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public async Task EmptyOrNullSecret_Bypasses_ReturnsTrue(string? secret)
+    public async Task EmptyOrNullSecret_NonDev_ReturnsFalse(string? secret)
     {
-        var result = await MercadoPagoSignatureValidator.IsValidAsync(BuildRequest(), secret);
-        Assert.True(result);
+        var result = await MercadoPagoSignatureValidator.IsValidAsync(BuildRequest(), secret, isDevelopment: false);
+        Assert.False(result);
     }
 
     [Fact]
@@ -104,6 +104,43 @@ public class MercadoPagoSignatureValidatorTests
     {
         var v1 = ComputeV1(DataId, RequestId, Ts, Secret);
         var request = BuildRequest(body: "{\"other\":\"field\"}", xSignature: $"ts={Ts},v1={v1}", xRequestId: RequestId);
+        var result = await MercadoPagoSignatureValidator.IsValidAsync(request, Secret);
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task EmptySecret_NonDevelopment_ReturnsFalse()
+    {
+        var request = BuildRequest(xRequestId: RequestId);
+        var result = await MercadoPagoSignatureValidator.IsValidAsync(request, "", isDevelopment: false);
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task EmptySecret_Development_ReturnsTrue()
+    {
+        var request = BuildRequest(xRequestId: RequestId);
+        var result = await MercadoPagoSignatureValidator.IsValidAsync(request, "", isDevelopment: true);
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task NumericDataId_ValidSignature_ReturnsTrue()
+    {
+        // data.id as JSON number instead of string
+        var v1 = ComputeV1(DataId, RequestId, Ts, Secret);
+        var request = BuildRequest(
+            body: $"{{\"data\":{{\"id\":{DataId}}}}}",
+            xSignature: $"ts={Ts},v1={v1}",
+            xRequestId: RequestId);
+        var result = await MercadoPagoSignatureValidator.IsValidAsync(request, Secret);
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task MalformedXSignature_NoTsValue_ReturnsFalse()
+    {
+        var request = BuildRequest(xSignature: "v1=abc123", xRequestId: RequestId);
         var result = await MercadoPagoSignatureValidator.IsValidAsync(request, Secret);
         Assert.False(result);
     }
