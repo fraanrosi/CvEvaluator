@@ -4,7 +4,6 @@ import { LandingComponent } from './landing.component';
 import { SessionService } from '../../core/services/session.service';
 
 describe('LandingComponent', () => {
-
   describe('when not authenticated', () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -70,7 +69,8 @@ describe('LandingComponent', () => {
       const fixture = TestBed.createComponent(LandingComponent);
       fixture.detectChanges();
       const el = fixture.nativeElement as HTMLElement;
-      const cards = el.querySelectorAll('.card-hover');
+      const section = el.querySelector('#features');
+      const cards = section?.querySelectorAll('.group.rounded-2xl') ?? [];
       expect(cards.length).toBe(4);
     });
 
